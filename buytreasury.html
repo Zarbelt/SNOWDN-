@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy Treasury</title>
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #0c1b42, #091435);
+      color: #ffffff;
+      line-height: 1.6;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Treasury Section */
+    .treasury-container {
+      text-align: center;
+      background: #112454;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+    }
+
+    /* Treasury Title */
+    .treasury-container h1 {
+      font-size: 2rem;
+      color: #f1c40f; /* Golden Accent */
+      margin-bottom: 1.5rem;
+    }
+
+    /* Treasury Address */
+    .crypto-address {
+      background: #0f1d40;
+      color: #ffffff;
+      padding: 1rem;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      font-family: 'Courier New', Courier, monospace;
+      margin-bottom: 2rem;
+      border: 1px solid #1c3a70;
+      word-wrap: break-word;
+    }
+
+    .crypto-address:hover {
+      background: #162a66;
+      border-color: #4682f1;
+    }
+
+    /* Info Text */
+    .info-text {
+      font-size: 1rem;
+      color: #bfcbe5;
+      margin-bottom: 1rem;
+    }
+
+    .info-text strong {
+      color: #f1c40f;
+    }
+
+    /* KSDOG Note */
+    .ksdog-note {
+      font-size: 1rem;
+      color: #11f633;
+      margin-bottom: 1rem;
+    }
+
+    .ksdog-note strong {
+      color: #f1c40f;
+    }
+
+    /* Footer Message */
+    .footer-message {
+      font-size: 0.9rem;
+      color: #ff5e50;
+      margin-top: 2rem;
+    }
+
+    /* Button Styling */
+    .copy-btn {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #27ae60;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      background-color: #2ecc71;
+      transform: translateY(-2px);
+    }
+
+    /* Floating Background Animation */
+    .floating-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+      animation: float 8s infinite linear;
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    /* Form Styling */
+    .token-form {
+      margin-top: 1.5rem;
+    }
+
+    .token-form input {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 8px;
+      border: 1px solid #1c3a70;
+      background: #0f1d40;
+      color: #ffffff;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .token-form input::placeholder {
+      color: #bfcbe5;
+    }
+
+    .token-form button {
+      width: 100%;
+      padding: 0.8rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #27ae60;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .token-form button:hover {
+      background-color: #2ecc71;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-bg"></div>
+  <div class="treasury-container">
+    <h1>Buy Treasury</h1>
+    <div class="crypto-address" id="cryptoAddress">
+      KASPA SWAP: SEND YOUR KRC20 TOKENS TO THIS ADDRESS: <br>
+      <strong>kaspa:qyp60g7z60kk77vrjm2muz5knlex9uxlp88r2sznwsl30mxzrxwp2cglt7f5czn</strong>
+    </div>
+    <div class="instructions" id="solanaInstructions">
+      USDC SWAP : SEND YOUR USDC SOLANA TO THIS ADDRESS <br>
+      <strong>CG9shmbqgZKHTGJdPm25rQ2BQUgR6VKfCuALzAdTgxto</strong>
+    </div>
+    <button class="copy-btn" onclick="copyToClipboard()">Copy Kaspa Address</button>
+    <button class="copy-btn" onclick="copySolanaToClipboard()">Copy Solana Address</button>
+    <p class="info-text">
+      <strong>Note:</strong> Send Tokens to the above address to complete your transaction.
+    </p>
+    <p class="ksdog-note">
+      <strong>BUY Rates:</strong> Swap Tokens at these Rates!<br>
+      - 1 SNOWDN ➟ 0.02 Kaspa<br>
+      - 1 SNOWDN ➟ 1000 KSDOG<br>
+      - 1 SNOWDN ➟ 250 KANGO<br>
+      - 1 SNOWDN ➟ 100 NACHO<br>
+      - 500 SNOWDN ➟ 1 USDC (COMING SOON)<br>
+      - More than three swaps in a day may not be refunded, please check your swaps carefully!
+    </p>
+    <p class="footer-message">
+      SWAPS DELIVER IN 24 HOURS OR LESS UNTIL SMART CONTRACTS ARE RELEASED.
+    </p>
+  </div>
+
+  <script>
+    function copyToClipboard() {
+      const address = document.getElementById('cryptoAddress').innerText.replace("KASPA SWAP: ", "");
+      navigator.clipboard.writeText(address).then(() => {
+        alert('Kaspa address copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy address: ', err);
+      });
+    }
+
+    function copySolanaToClipboard() {
+      const address = document.getElementById('solanaAddress').innerText.replace("USDC on SOLANA SWAP: ", "");
+      navigator.clipboard.writeText(address).then(() => {
+        alert('Solana address copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy address: ', err);
+      });
+    }
+
+
+  </script>
+</body>
+</html>

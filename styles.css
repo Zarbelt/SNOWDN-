@@ -1,0 +1,484 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #0c1b42; /* Dark Blue Background */
+    color: #ffffff;
+    line-height: 1.6;
+    margin: 0;
+  }
+  
+  /* Header */
+  header {
+    text-align: center;
+    padding: 1rem 0;
+    background-color: #09350e;
+    border-bottom: 1px solid #1c602d;
+  }
+  
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  
+  /* Main Section */
+  main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 2rem;
+  }
+  
+  /* Exchange Box */
+  .exchange-box {
+    background-color: #112454;
+    border-radius: 15px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+  }
+  
+  .exchange-box h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Input Group */
+  .input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+  
+  .input-group label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #bfcbe5;
+  }
+  
+  .input-group input {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border: 1px solid #1c3a70;
+    border-radius: 8px;
+    background-color: #0f1d40;
+    color: #ffffff;
+  }
+  
+  .input-group input:focus {
+    outline: none;
+    border-color: #4682f1;
+    box-shadow: 0 0 5px rgba(70, 130, 241, 0.5);
+  }
+  
+  /* Button Group */
+  .button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .buy-btn,
+  .sell-btn {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .buy-btn {
+    background-color: #27ae60;
+    color: #ffffff;
+  }
+  
+  .buy-btn:hover {
+    background-color: #2ecc71;
+  }
+  
+  .sell-btn {
+    background-color: #e74c3c;
+    color: #ffffff;
+  }
+  
+  .sell-btn:hover {
+    background-color: #ff5e50;
+  }
+  
+  /* Info Section */
+  .info {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #bfcbe5;
+  }
+  
+  .info p {
+    margin-bottom: 0.5rem;
+  }
+  
+  .info strong {
+    color: #f1c40f;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .exchange-box {
+      width: 90%;
+      padding: 1.5rem;
+    }
+  
+    .button-group {
+      flex-direction: column;
+    }
+  
+    .buy-btn,
+    .sell-btn {
+      margin-bottom: 1rem;
+    }
+  }
+  footer {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .social-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  .social-link img {
+    width: 32px; /* Adjust icon size */
+    height: 32px;
+    transition: transform 0.2s ease;
+  }
+  .social-link img:hover {
+    transform: scale(1.1); /* Slight zoom effect on hover */
+  }
+  .info1 {
+    position: relative; /* Ensures it remains in flow below the swap container */
+    margin-top: 20px; /* Adds spacing between the swap container and this text */
+    text-align: center; /* Centers the text */
+    background-color: #28a745; /* Green background for visibility */
+    color: #ffffff; /* White text for contrast */
+    font-size: 1rem; /* Adjusts font size */
+    font-weight: bold; /* Makes the text bold */
+    border-radius: 5px; /* Adds rounded corners */
+    padding: 10px 15px; /* Adds padding for a better look */
+    display: inline-block; /* Prevents it from stretching across the screen */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow */
+  }
+  .toggle-group {
+    text-align: center;
+    margin: 10px 0;
+  }
+  
+  #toggle-btn {
+    background-color: #4caf50; /* Green background */
+    border: none;
+    color: white;
+    font-size: 24px;
+    padding: 10px 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  #toggle-btn:hover {
+    background-color: #45a049; /* Slightly darker green on hover */
+  }
+  
+  .toggle-comment {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #8d8989; /* Neutral gray */
+    font-family: 'Arial', sans-serif;
+    padding: 10px 20px;
+    border-radius: 50%;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  /* Input Group Container */
+.input-group {
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+/* Label Styling */
+.input-group label {
+  display: block;
+  font-size: 1rem;
+  color: #bfcbe5;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+/* Select Dropdown Styling */
+.input-group select {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-family: 'Arial', sans-serif;
+  color: #ffffff;
+  background-color: #0f1d40;
+  border: 1px solid #1c3a70;
+  border-radius: 8px;
+  cursor: pointer;
+  appearance: none; /* Remove default arrow */
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Select Dropdown Hover State */
+.input-group select:hover {
+  border-color: #4682f1;
+}
+
+/* Select Dropdown Focus State */
+.input-group select:focus {
+  border-color: #27ae60;
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.3);
+}
+
+
+.input-group {
+  position: relative;
+}
+
+.input-group::after {
+  content: '▼';
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  color: #bfcbe5;
+  pointer-events: none; 
+}
+
+
+.input-group select option {
+  background-color: #0f1d40;
+  color: #ffffff;
+  padding: 0.5rem;
+}
+
+
+.input-group select option:hover {
+  background-color: #162a66;
+}
+#currency-select {
+  appearance: none; /* Remove default arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: none;
+  padding-left: 30px; /* Space for the icon */
+  position: relative;
+}
+
+#currency-select option {
+  padding-left: 30px; /* Space for the icon */
+}
+
+#currency-select::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  width: 200px;
+}
+
+#selected-currency {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #222;
+  color: white;
+  border: 1px solid #555;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+#selected-currency img {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.dropdown-options {
+  display: none;
+  position: absolute;
+  background-color: #080558;
+  border: 1px solid #555;
+  width: 100%;
+  z-index: 10;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-options li {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.dropdown-options li img {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.dropdown-options li:hover {
+  background-color: #444;
+}
+
+
+
+/* Base styles */
+body {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+header h1 {
+  font-size: 2rem;
+}
+
+.exchange-box {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  .exchange-box {
+    padding: 15px;
+  }
+
+  .input-group label {
+    font-size: 0.9rem;
+  }
+
+  .input-group input {
+    font-size: 0.9rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .toggle-group {
+    text-align: center;
+  }
+
+  .toggle-group p {
+    font-size: 0.8rem;
+  }
+
+  .info p {
+    font-size: 0.8rem;
+  }
+
+  .info1 p {
+    font-size: 0.8rem;
+  }
+
+  footer p {
+    font-size: 0.8rem;
+  }
+
+  .social-links img {
+    width: 24px;
+    height: 24px;
+  }
+}
+.exchange-box {
+  position: relative;
+  z-index: 1; 
+}
+
+@media (max-width: 768px) {
+  .exchange-box {
+    margin-top: 20px; 
+  }
+}
+
+
+.top-social-links {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.top-social-links .social-link img {
+  width: 50px;
+  height: 50px;
+}
+
+
+header {
+  position: relative;
+  text-align: center;
+}
+
+footer .social-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+footer .social-link img {
+  width: 24px;
+  height: 24px;
+}
