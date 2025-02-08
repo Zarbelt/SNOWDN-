@@ -16,19 +16,18 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabaseservicerole = process.env.SUPABASE_SERVICE;
 const supabase = createClient(supabaseUrl, supabaseKey, supabaseservicerole);
 
-// Set Content Security Policy
 app.use((req, res, next) => {
     res.setHeader(
         'Content-Security-Policy',
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' https://swap.snowdn.org/; " +
-        "style-src 'self' 'unsafe-inline'; " +
+        "script-src 'self' https://swap.snowdn.org/; " + 
+        "style-src 'self' 'unsafe-inline'; " + 
         "img-src 'self' data:; " +
         "font-src 'self'; " +
         "connect-src 'self' https://btotqnvpdropstzpnapb.supabase.co; " +
         "frame-src 'self';"
-      );
-  next();
+    );
+    next();
 });
 
 app.use(cors());
