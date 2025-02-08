@@ -1,6 +1,7 @@
 import 'dotenv/config'; // Load environment variables
 import express from "express";
 import cors from "cors";
+import helmet from "helmet"; // Import helmet for security headers
 import path from "path";
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
@@ -16,12 +17,27 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabaseservicerole = process.env.SUPABASE_SERVICE;
 const supabase = createClient(supabaseUrl, supabaseKey, supabaseservicerole);
 
+// Configure CORS to allow all origins and methods
 app.use(cors({
-    origin: '*', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
-    allowedHeaders: ['Content-Type', 'Authorization'] 
+    origin: '*', // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow specific headers
 }));
 
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-eval'"], // Allow unsafe-eval (use with caution)
+                styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles
+                imgSrc: ["'self'", 'data:', 'https://*'], // Allow images from self, data URIs, and HTTPS
+                fontSrc: ["'self'", 'https://*'], // Allow fonts from self and HTTPS
+                connectSrc: ["'self'", 'https://*'], // Allow connections to self and HTTPS
+            },
+        },
+    })
+);
 app.use(express.json());
 app.use(express.static(__dirname));
 
