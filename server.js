@@ -19,13 +19,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, supabaseservicerole);
 app.use((req, res, next) => {
     res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self'; " +
-        "script-src 'self' https://swap.snowdn.org/; " + 
-        "style-src 'self' 'unsafe-inline'; " + 
-        "img-src 'self' data:; " +
-        "font-src 'self'; " +
-        "connect-src 'self' https://btotqnvpdropstzpnapb.supabase.co; " +
-        "frame-src 'self';"
+        "default-src * 'unsafe-inline' 'unsafe-eval';"
     );
     next();
 });
