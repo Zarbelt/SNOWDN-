@@ -5,169 +5,213 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sell Treasury</title>
   <style>
-    /* General Reset */
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #0b132b, #041024);
-      color: #ffffff;
-      line-height: 1.6;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 90vh;
-      overflow: hidden;
-    }
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #0b132b, #041024);
+  color: #ffffff;
+  line-height: 1.6;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* Changed from height: 90vh to min-height: 100vh */
+  padding: 2rem 0; /* Added padding to ensure content doesn't touch the edges */
+}
 
-    /* Treasury Section */
-    .treasury-container {
-      text-align: center;
-      background: #0e1b3a;
-      border-radius: 15px;
-      padding: 2rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-      width: 90%;
-      max-width: 600px;
-      position: relative;
-    }
+/* Treasury Section */
+.treasury-container {
+  text-align: center;
+  background: #0e1b3a;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+  margin: 2rem 0; /* Added margin to ensure spacing */
+}
 
-    /* Treasury Title */
-    .treasury-container h1 {
-      font-size: 2rem;
-      color: #e74c3c; /* Red Accent */
-      margin-bottom: 1.5rem;
-    }
+/* Treasury Title */
+.treasury-container h1 {
+  font-size: 2rem;
+  color: #e74c3c; /* Red Accent */
+  margin-bottom: 1.5rem;
+}
 
-    /* Treasury Instructions */
-    .instructions {
-      background: #142844;
-      color: #ffffff;
-      padding: 1.5rem;
-      border-radius: 10px;
-      font-size: 1.2rem;
-      font-family: 'Courier New', Courier, monospace;
-      margin-bottom: 2rem;
-      border: 1px solid #1b4c74;
-      word-wrap: break-word;
-    }
+/* Treasury Instructions */
+.instructions {
+  background: #142844;
+  color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-family: 'Courier New', Courier, monospace;
+  margin-bottom: 2rem;
+  border: 1px solid #1b4c74;
+  word-wrap: break-word;
+}
 
-    .instructions:hover {
-      background: #193459;
-      border-color: #ff5e57;
-    }
+.instructions:hover {
+  background: #193459;
+  border-color: #ff5e57;
+}
 
-    /* Info Text */
-    .info-text {
-      font-size: 1rem;
-      color: #cfd9e7;
-      margin-bottom: 1rem;
-    }
+/* Info Text */
+.info-text {
+  font-size: 1rem;
+  color: #cfd9e7;
+  margin-bottom: 1rem;
+}
 
-    .info-text strong {
-      color: #e74c3c;
-    }
+.info-text strong {
+  color: #e74c3c;
+}
 
-    /* KSDOG Note */
-    .ksdog-note {
-      font-size: 1rem;
-      color: #11f633;
-      margin-bottom: 1rem;
-    }
+/* KSDOG Note */
+.ksdog-note {
+  font-size: 1rem;
+  color: #11f633;
+  margin-bottom: 1rem;
+}
 
-    .ksdog-note strong {
-      color: #e74c3c;
-    }
+.ksdog-note strong {
+  color: #e74c3c;
+}
 
-    /* Footer Message */
-    .footer-message {
-      font-size: 0.9rem;
-      color: #e67e22;
-      margin-top: 2rem;
-    }
+/* Footer Message */
+.footer-message {
+  font-size: 0.9rem;
+  color: #e67e22;
+  margin-top: 2rem;
+}
 
-    /* Button Styling */
-    .copy-btn {
-      display: inline-block;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      font-weight: bold;
-      color: #ffffff;
-      background-color: #e74c3c;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-    }
+/* Button Styling */
+.copy-btn {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
 
-    .copy-btn:hover {
-      background-color: #ff6b5a;
-      transform: translateY(-2px);
-    }
+.copy-btn:hover {
+  background-color: #ff6b5a;
+  transform: translateY(-2px);
+}
 
-    /* Floating Background Animation */
-    .floating-bg {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
-      animation: float 8s infinite linear;
-      transform: translate(-50%, -50%);
-    }
+/* Floating Background Animation */
+.floating-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+  animation: float 8s infinite linear;
+  transform: translate(-50%, -50%);
+}
 
-    @keyframes float {
-      0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-      }
-      100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-      }
-    }
-    .token-form {
-      margin-top: 1.5rem;
-    }
+@keyframes float {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
 
-    .token-form input {
-      width: 100%;
-      padding: 0.8rem;
-      border-radius: 8px;
-      border: 1px solid #1b4c74;
-      background: #142844;
-      color: #ffffff;
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
+.token-form {
+  margin-top: 1.5rem;
+}
 
-    .token-form input::placeholder {
-      color: #cfd9e7;
-    }
+.token-form input {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #1b4c74;
+  background: #142844;
+  color: #ffffff;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
 
-    .token-form button {
-      width: 100%;
-      padding: 0.8rem;
-      font-size: 1rem;
-      font-weight: bold;
-      color: #ffffff;
-      background-color: #e74c3c;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-    }
+.token-form input::placeholder {
+  color: #cfd9e7;
+}
 
-    .token-form button:hover {
-      background-color: #ff6b5a;
-      transform: translateY(-2px);
-    }
+.token-form button {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.token-form button:hover {
+  background-color: #ff6b5a;
+  transform: translateY(-2px);
+}
+
+/* Swap Bar Styling */
+.swap-bar {
+  background: #142844;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-top: 1.5rem;
+  border: 1px solid #1b4c74;
+}
+
+.swap-bar p {
+  font-size: 1rem;
+  color: #cfd9e7;
+  margin-bottom: 1rem;
+}
+
+.swap-bar button {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.swap-bar button:hover {
+  background-color: #ff6b5a;
+  transform: translateY(-2px);
+}
+  </style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sell Treasury</title>
+  <style>
+    /* Add your CSS styles here */
   </style>
 </head>
 <body>
@@ -188,7 +232,6 @@
       <strong>Note:</strong> Send Tokens to the above address to complete your transaction.
     </p>
     <p class="ksdog-note">
-  <p class="ksdog-note">
       <strong>SELL Rates:</strong> Swap Crypto at these Rates!<br>
       <strong>Rates:</strong> Swap Crypto at these rates!<br>
       - One Kaspa => 10 SNOWDN<br>
@@ -196,10 +239,16 @@
       - 300 KANGO => 1 SNOWDN<br>
       - 150 NACHO => 1 SNOWDN<br>
       - One USDC => 500 SNOWDN COMING SOON<br>
+    </p>
     <p class="footer-message">
       PAYOUTS WILL BE PROCESSED WITHIN 24 HOURS OR LESS.
     </p>
-    
+
+    <!-- Swap Bar -->
+    <div class="swap-bar">
+      <p>Submit what you want to swap to. You might be redirected to a Google Form.</p>
+      <button onclick="openGoogleFormInNewTab()">Submit</button>
+    </div>
   </div>
 
   <script>
@@ -220,6 +269,13 @@
         console.error('Failed to copy address: ', err);
       });
     }
+
+    function openGoogleFormInNewTab() {
+      window.open("https://docs.google.com/forms/d/e/1FAIpQLScyYmn2NeZkdPk-gf3rRDxWiYUUCSlpbIH9PbdzKb-1z2vFOg/viewform?usp=sharing", "_blank");
+    }
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>

@@ -22,7 +22,8 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      overflow: hidden;
+      min-height: 100vh; /* Changed from height: 90vh to min-height: 100vh */
+      padding: 2rem 0; /* Added padding to ensure content doesn't touch the edges */
     }
 
     /* Treasury Section */
@@ -35,6 +36,7 @@
       width: 90%;
       max-width: 600px;
       position: relative;
+      margin: 2rem 0; /* Added margin to ensure spacing */
     }
 
     /* Treasury Title */
@@ -123,15 +125,7 @@
       transform: translate(-50%, -50%);
     }
 
-    @keyframes float {
-      0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-      }
-      100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-      }
-    }
-
+  
     /* Form Styling */
     .token-form {
       margin-top: 1.5rem;
@@ -170,6 +164,49 @@
       background-color: #2ecc71;
       transform: translateY(-2px);
     }
+
+    /* Swap Bar Styling */
+    .swap-bar {
+      background: #0f1d40;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1.5rem;
+      border: 1px solid #1c3a70;
+    }
+
+    .swap-bar p {
+      font-size: 1rem;
+      color: #bfcbe5;
+      margin-bottom: 1rem;
+    }
+
+    .swap-bar button {
+      width: 100%;
+      padding: 0.8rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #27ae60;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .swap-bar button:hover {
+      background-color: #2ecc71;
+      transform: translateY(-2px);
+    }
+  </style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy Treasury</title>
+  <style>
+    /* Add your CSS styles here */
   </style>
 </head>
 <body>
@@ -180,7 +217,7 @@
       KASPA SWAP: SEND YOUR KRC20 TOKENS TO THIS ADDRESS: <br>
       <strong>kaspa:qyp60g7z60kk77vrjm2muz5knlex9uxlp88r2sznwsl30mxzrxwp2cglt7f5czn</strong>
     </div>
-    <div class="instructions" id="solanaInstructions">
+    <div class="crypto-address" id="solanaAddress">
       USDC SWAP : SEND YOUR USDC SOLANA TO THIS ADDRESS <br>
       <strong>CG9shmbqgZKHTGJdPm25rQ2BQUgR6VKfCuALzAdTgxto</strong>
     </div>
@@ -201,11 +238,17 @@
     <p class="footer-message">
       SWAPS DELIVER IN 24 HOURS OR LESS UNTIL SMART CONTRACTS ARE RELEASED.
     </p>
+
+    <!-- Swap Bar -->
+    <div class="swap-bar">
+      <p>Submit what you want to swap to. You might be redirected to a Google Form.</p>
+      <button onclick="openGoogleFormInNewTab()">Submit</button>
+    </div>
   </div>
 
   <script>
     function copyToClipboard() {
-      const address = document.getElementById('cryptoAddress').innerText.replace("KASPA SWAP: ", "");
+      const address = document.getElementById('cryptoAddress').innerText.split('\n')[1].trim();
       navigator.clipboard.writeText(address).then(() => {
         alert('Kaspa address copied to clipboard!');
       }).catch(err => {
@@ -214,7 +257,7 @@
     }
 
     function copySolanaToClipboard() {
-      const address = document.getElementById('solanaAddress').innerText.replace("USDC on SOLANA SWAP: ", "");
+      const address = document.getElementById('solanaAddress').innerText.split('\n')[1].trim();
       navigator.clipboard.writeText(address).then(() => {
         alert('Solana address copied to clipboard!');
       }).catch(err => {
@@ -222,7 +265,9 @@
       });
     }
 
-
+    function openGoogleFormInNewTab() {
+      window.open("https://docs.google.com/forms/d/e/1FAIpQLScyYmn2NeZkdPk-gf3rRDxWiYUUCSlpbIH9PbdzKb-1z2vFOg/viewform?usp=sharing", "_blank");
+    }
   </script>
 </body>
 </html>
