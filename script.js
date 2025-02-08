@@ -7,7 +7,9 @@ const kangoToSwodnRate = 250; // 1 SNOWDN = 250 KANGO (BUY)
 const swodnToKangoRate = 300; // 300 KANGO = 1 SNOWDN (SELL)
 const nachoToSwodnRate = 100; // 1 SNOWDN = 100 NACHO (BUY)
 const swodnToNachoRate = 150; // 150 NACHO = 1 SNOWDN (SELL)
-const usdcToSwodnRate = 500; 
+const usdcToSwodnRate = 500;
+const swodnToUsdcRate = 0.002;
+const minSwodnForUsdc = 500; // Minimum SWODN for USDC conversions
 
 // DOM Elements
 const sendInput = document.getElementById('send-amount');
@@ -35,7 +37,6 @@ swodnInput.addEventListener('input', () => {
   updateReverseExchangeValues();
 });
 
-
 function updateExchangeValues() {
   const sendAmount = parseFloat(sendInput.value);
   let calculatedAmount = 0;
@@ -60,11 +61,11 @@ function updateExchangeValues() {
         ? sendAmount / nachoToSwodnRate
         : sendAmount * swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
-      calculatedAmount = sendAmount * usdcToSwodnRate;
+      calculatedAmount = isKasToSwodn
+        ? sendAmount * usdcToSwodnRate // 1 USDC = 500 SWODN (BUY)
+        : sendAmount / usdcToSwodnRate; // 500 SWODN = 1 USDC (SELL)
     }
 
-
-  
     calculatedAmount = Math.floor(calculatedAmount);
     if (calculatedAmount < minSnowdn) {
       calculatedAmount = 0;
@@ -79,7 +80,7 @@ function updateExchangeValues() {
       } else if (selectedCurrencyValue === 'NACHO') {
         sendInput.value = Math.floor(maxSnowdn * nachoToSwodnRate);
       } else if (selectedCurrencyValue === 'USDC') {
-        sendInput.value = Math.floor(maxSnowdn / usdcToSwodnRate);
+        sendInput.value = Math.floor(maxSnowdn / usdcToSwodnRate); // Adjust USDC input for max SWODN
       }
     }
 
@@ -88,7 +89,6 @@ function updateExchangeValues() {
     swodnInput.value = '';
   }
 }
-
 function updateReverseExchangeValues() {
   const swodnAmount = parseFloat(swodnInput.value);
   let calculatedAmount = 0;
@@ -111,12 +111,13 @@ function updateReverseExchangeValues() {
         ? swodnAmount * nachoToSwodnRate
         : swodnAmount / swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
-      calculatedAmount = swodnAmount / usdcToSwodnRate;
+      calculatedAmount = isKasToSwodn
+        ? swodnAmount / usdcToSwodnRate // 500 SWODN = 1 USDC (BUY)
+        : swodnAmount / usdcToSwodnRate; // 500 SWODN = 1 USDC (SELL)
     }
 
-
     // Ensure SWODN is an integer and enforce minimum and maximum limits
-    swodnAmountRounded = Math.floor(swodnAmount);
+    const swodnAmountRounded = Math.floor(swodnAmount);
     if (swodnAmountRounded < minSnowdn) {
       swodnInput.value = 0;
       calculatedAmount = 0;
@@ -139,7 +140,9 @@ function updateReverseExchangeValues() {
           ? Math.floor(maxSnowdn / nachoToSwodnRate)
           : Math.floor(maxSnowdn * swodnToNachoRate);
       } else if (selectedCurrencyValue === 'USDC') {
-        calculatedAmount = Math.floor(maxSnowdn / usdcToSwodnRate);
+        calculatedAmount = isKasToSwodn
+          ? Math.floor(maxSnowdn / usdcToSwodnRate)
+          : Math.floor(maxSnowdn / usdcToSwodnRate); 
       }
     }
 
@@ -149,13 +152,11 @@ function updateReverseExchangeValues() {
   }
 }
 
-
 toggleBtn.addEventListener('click', () => {
   isKasToSwodn = !isKasToSwodn;
   updateLabels();
   resetInputs();
 });
-
 
 selectedCurrency.addEventListener("click", () => {
   currencyList.style.display = currencyList.style.display === "block" ? "none" : "block";
@@ -184,12 +185,10 @@ document.addEventListener("click", (e) => {
   }
 });
 
-
 function updateLabels() {
   sendLabel.textContent = isKasToSwodn ? `You Send (${selectedCurrencyValue}):` : `You Send (SNOWDN):`;
   getLabel.textContent = isKasToSwodn ? `You Get (SNOWDN):` : `You Get (${selectedCurrencyValue}):`;
 }
-
 
 function resetInputs() {
   sendInput.value = '';
