@@ -16,14 +16,6 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabaseservicerole = process.env.SUPABASE_SERVICE;
 const supabase = createClient(supabaseUrl, supabaseKey, supabaseservicerole);
 
-app.use((req, res, next) => {
-    res.setHeader(
-        'Content-Security-Policy',
-        "default-src * 'unsafe-inline' 'unsafe-eval';"
-    );
-    next();
-});
-
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
