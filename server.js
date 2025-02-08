@@ -16,6 +16,15 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabaseservicerole = process.env.SUPABASE_SERVICE;
 const supabase = createClient(supabaseUrl, supabaseKey, supabaseservicerole);
 
+// Set Content Security Policy
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://swap.snowdn.org/; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://your-supabase-url.supabase.co; frame-src 'self';"
+  );
+  next();
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
