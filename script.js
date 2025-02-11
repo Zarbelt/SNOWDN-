@@ -21,6 +21,8 @@ const sendLabel = document.getElementById('send-label');
 const getLabel = document.getElementById('get-label');
 const selectedCurrency = document.getElementById("selected-currency");
 const currencyList = document.getElementById("currency-list");
+const kaswareConnectDiv = document.getElementById('kasware-connect');
+const connectKaswareBtn = document.getElementById('connect-kasware-btn');
 
 // Initial State
 let isKasToSwodn = true; // Default mode: You send KAS, get SNOWDN
@@ -29,6 +31,86 @@ const maxSnowdn = 1000; // Maximum SNOWDN per transaction
 const minSnowdn = 10; // Minimum SWODN for any transaction
 const minKsdogBuy = 100000; // Minimum KSDOG for buy transaction
 
+
+
+function initKaswareButton() {
+  const kaswareConnectDiv = document.getElementById('kasware-connect');
+  const connectKaswareBtn = document.getElementById('connect-kasware');
+
+  
+  if (!kaswareConnectDiv || !connectKaswareBtn) {
+    console.error('Kasware Connect elements not found!');
+    return;
+  }
+
+  
+  if (!isMobileDevice()) {
+    kaswareConnectDiv.style.display = 'block';
+
+   
+    connectKaswareBtn.addEventListener('click', async () => {
+      try {
+        
+        const kasware = await checkKasware();
+        if (!kasware) {
+          alert('Kasware Wallet is not installed or not enabled.');
+          return;
+        }
+
+     
+        const accounts = await kasware.getAccounts();
+        if (accounts.length === 0) {
+          alert('No accounts found. Please unlock your wallet.');
+          return;
+        }
+
+        const address = accounts[0];
+        console.log('Connected account:', address);
+
+        // Retrieve wallet details
+        const publicKey = await kasware.getPublicKey();
+        const balance = await kasware.getBalance();
+        const network = await kasware.getNetwork();
+        const krc20Balances = await kasware.getKRC20Balance();
+
+        console.log('Public Key:', publicKey);
+        console.log('Balance:', balance);
+        console.log('KRC20 Balances:', krc20Balances);
+        console.log('Network:', network);
+
+        alert(`Connected to Kasware Wallet:\nAddress: ${address}\nNetwork: ${network}`);
+      } catch (error) {
+        console.error('Error connecting to Kasware Wallet:', error);
+        alert('Failed to connect to Kasware Wallet.');
+      }
+    });
+  } else {
+    
+    kaswareConnectDiv.style.display = 'none';
+  }
+}
+
+
+async function checkKasware() {
+  let kasware = window.kasware;
+
+  
+  for (let i = 1; i <= 10 && !kasware; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 500 * i)); 
+    kasware = window.kasware;
+  }
+
+  return kasware || null;
+}
+
+
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+
+document.addEventListener('DOMContentLoaded', initKaswareButton);
+// Event Listeners for Input Fields
 sendInput.addEventListener('input', () => {
   updateExchangeValues();
 });
@@ -37,6 +119,7 @@ swodnInput.addEventListener('input', () => {
   updateReverseExchangeValues();
 });
 
+// Update Exchange Values
 function updateExchangeValues() {
   const sendAmount = parseFloat(sendInput.value);
   let calculatedAmount = 0;
@@ -89,6 +172,8 @@ function updateExchangeValues() {
     swodnInput.value = '';
   }
 }
+
+// Update Reverse Exchange Values
 function updateReverseExchangeValues() {
   const swodnAmount = parseFloat(swodnInput.value);
   let calculatedAmount = 0;
@@ -112,8 +197,8 @@ function updateReverseExchangeValues() {
         : swodnAmount / swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
       calculatedAmount = isKasToSwodn
-        ? swodnAmount / usdcToSwodnRate // 500 SWODN = 1 USDC (BUY)
-        : swodnAmount / usdcToSwodnRate; // 500 SWODN = 1 USDC (SELL)
+        ? swodnAmount / usdcToSwodnRate 
+        : swodnAmount / usdcToSwodnRate; 
     }
 
     // Ensure SWODN is an integer and enforce minimum and maximum limits
@@ -142,7 +227,7 @@ function updateReverseExchangeValues() {
       } else if (selectedCurrencyValue === 'USDC') {
         calculatedAmount = isKasToSwodn
           ? Math.floor(maxSnowdn / usdcToSwodnRate)
-          : Math.floor(maxSnowdn / usdcToSwodnRate); 
+          : Math.floor(maxSnowdn / usdcToSwodnRate);
       }
     }
 
@@ -152,11 +237,13 @@ function updateReverseExchangeValues() {
   }
 }
 
+
 toggleBtn.addEventListener('click', () => {
   isKasToSwodn = !isKasToSwodn;
   updateLabels();
   resetInputs();
 });
+
 
 selectedCurrency.addEventListener("click", () => {
   currencyList.style.display = currencyList.style.display === "block" ? "none" : "block";
@@ -233,4 +320,5 @@ sellBtn.addEventListener('click', () => {
   window.location.href = './selltreasury.html';
 });
 
+// Initialize Labels
 updateLabels();

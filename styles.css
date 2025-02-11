@@ -482,3 +482,99 @@ footer .social-link img {
   width: 24px;
   height: 24px;
 }
+body {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+header, main, footer {
+  padding: 10px;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 24px;
+  }
+
+  .exchange-box {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+}
+#kasware-connect {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+#kasware-connect button {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32); 
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 30px; 
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600; 
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative; /* Required for the pseudo-element */
+}
+
+#kasware-connect button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 70%);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.5s ease;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+#kasware-connect button:hover {
+  background: linear-gradient(135deg, #45a049, #1B5E20); 
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); 
+  transform: translateY(-2px); 
+}
+
+#kasware-connect button:hover::before {
+  transform: translate(-50%, -50%) scale(1); 
+}
+
+#kasware-connect button:active {
+  transform: translateY(0); 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
+}
+
+#kasware-connect button span {
+  position: relative;
+  z-index: 1; 
+}
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  margin-left: 20px;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
