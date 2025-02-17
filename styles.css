@@ -578,3 +578,26 @@ header, main, footer {
 .nav-link:hover {
   text-decoration: underline;
 }
+/* Promo Banner */
+.promo-banner {
+  background: linear-gradient(135deg, #ff9f43, #ff6b6b); /* Gradient Orange-Red */
+  color: #fff;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.promo-banner span {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}

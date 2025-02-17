@@ -1,15 +1,15 @@
 // Exchange Rates
-const kasToSwodnRate = 10; // 1 KAS = 10 SNOWDN (BUY)
-const swodnToKasRate = 0.02; // 1 SNOWDN = 0.02 KAS (SELL)
-const ksdogToSwodnBuyRate = 100000; // 100,000 KSDOG = 1 SNOWDN (BUY)
-const ksdogToSwodnSellRate = 0.001; // 200,000 KSDOG = 1 SNOWDN (SELL)
-const kangoToSwodnRate = 250; // 1 SNOWDN = 250 KANGO (BUY)
-const swodnToKangoRate = 300; // 300 KANGO = 1 SNOWDN (SELL)
-const nachoToSwodnRate = 100; // 1 SNOWDN = 100 NACHO (BUY)
-const swodnToNachoRate = 150; // 150 NACHO = 1 SNOWDN (SELL)
+const kasToSwodnRate = 10; 
+const swodnToKasRate = 0.022; 
+const ksdogToSwodnBuyRate = 100000; 
+const ksdogToSwodnSellRate = 0.000909; 
+const kangoToSwodnRate = 250; 
+const swodnToKangoRate = 330; 
+const nachoToSwodnRate = 100; 
+const swodnToNachoRate = 165; 
 const usdcToSwodnRate = 500;
 const swodnToUsdcRate = 0.002;
-const minSwodnForUsdc = 500; // Minimum SWODN for USDC conversions
+const minSwodnForUsdc = 500;
 
 // DOM Elements
 const sendInput = document.getElementById('send-amount');
@@ -31,85 +31,113 @@ const maxSnowdn = 1000; // Maximum SNOWDN per transaction
 const minSnowdn = 10; // Minimum SWODN for any transaction
 const minKsdogBuy = 100000; // Minimum KSDOG for buy transaction
 
-
-
-function initKaswareButton() {
-  const kaswareConnectDiv = document.getElementById('kasware-connect');
-  const connectKaswareBtn = document.getElementById('connect-kasware');
-
-  
-  if (!kaswareConnectDiv || !connectKaswareBtn) {
-    console.error('Kasware Connect elements not found!');
-    return;
+// Kasware Wallet State Management
+class KaswareState extends EventTarget {
+  constructor() {
+    super(); // Call the parent constructor (EventTarget)
+    this.state = {
+      account: null,
+      isConnected: false,
+      balance: null,
+      krc20Balances: null,
+      isLoading: false,
+      error: null,
+    };
+    this.initialize();
   }
 
-  
-  if (!isMobileDevice()) {
-    kaswareConnectDiv.style.display = 'block';
+  static getInstance() {
+    if (!KaswareState.instance) {
+      KaswareState.instance = new KaswareState();
+    }
+    return KaswareState.instance;
+  }
 
-   
-    connectKaswareBtn.addEventListener('click', async () => {
-      try {
-        
-        const kasware = await checkKasware();
-        if (!kasware) {
-          alert('Kasware Wallet is not installed or not enabled.');
-          return;
-        }
+  initialize() {
+    if (window.kasware) {
+      window.kasware.on("accountsChanged", this.handleAccountsChanged.bind(this));
+      window.kasware.on("chainChanged", this.handleChainChanged.bind(this));
+      window.kasware.on("disconnect", this.handleDisconnect.bind(this));
+    }
+  }
 
-     
-        const accounts = await kasware.getAccounts();
-        if (accounts.length === 0) {
-          alert('No accounts found. Please unlock your wallet.');
-          return;
-        }
-
-        const address = accounts[0];
-        console.log('Connected account:', address);
-
-        // Retrieve wallet details
-        const publicKey = await kasware.getPublicKey();
-        const balance = await kasware.getBalance();
-        const network = await kasware.getNetwork();
-        const krc20Balances = await kasware.getKRC20Balance();
-
-        console.log('Public Key:', publicKey);
-        console.log('Balance:', balance);
-        console.log('KRC20 Balances:', krc20Balances);
-        console.log('Network:', network);
-
-        alert(`Connected to Kasware Wallet:\nAddress: ${address}\nNetwork: ${network}`);
-      } catch (error) {
-        console.error('Error connecting to Kasware Wallet:', error);
-        alert('Failed to connect to Kasware Wallet.');
+  async connectWallet() {
+    this.setState({ isLoading: true, error: null });
+    try {
+      const accounts = await window.kasware.getAccounts();
+      if (accounts.length > 0) {
+        this.setState({
+          account: accounts[0],
+          isConnected: true,
+          isLoading: false,
+        });
+        await this.refreshBalances();
+      } else {
+        throw new Error("No accounts found. Please unlock your wallet.");
       }
+    } catch (error) {
+      this.setState({ error: "Failed to connect wallet", isLoading: false });
+      throw error;
+    }
+  }
+
+  async refreshBalances() {
+    if (this.state.account) {
+      try {
+        const [balance, krc20Balances] = await Promise.all([
+          window.kasware.getBalance(),
+          window.kasware.getKRC20Balances(),
+        ]);
+        this.setState({ balance, krc20Balances });
+      } catch (error) {
+        this.setState({ error: "Failed to fetch balances" });
+        throw error;
+      }
+    }
+  }
+
+  handleAccountsChanged(accounts) {
+    if (accounts.length === 0) {
+      this.setState({
+        account: null,
+        isConnected: false,
+        balance: null,
+        krc20Balances: null,
+      });
+    } else {
+      this.setState({ account: accounts[0], isConnected: true });
+      this.refreshBalances().catch(console.error);
+    }
+  }
+
+  handleChainChanged() {
+    this.connectWallet().catch(console.error);
+  }
+
+  handleDisconnect() {
+    this.setState({
+      account: null,
+      isConnected: false,
+      balance: null,
+      krc20Balances: null,
     });
-  } else {
-    
-    kaswareConnectDiv.style.display = 'none';
-  }
-}
-
-
-async function checkKasware() {
-  let kasware = window.kasware;
-
-  
-  for (let i = 1; i <= 10 && !kasware; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 500 * i)); 
-    kasware = window.kasware;
   }
 
-  return kasware || null;
-}
+  setState(newState) {
+    this.state = { ...this.state, ...newState };
+    // Dispatch a custom event when the state changes
+    this.dispatchEvent(new CustomEvent("stateChanged", { detail: this.state }));
+  }
 
+  getState() {
+    return { ...this.state };
+  }
+}
 
 function isMobileDevice() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
-
-document.addEventListener('DOMContentLoaded', initKaswareButton);
 // Event Listeners for Input Fields
 sendInput.addEventListener('input', () => {
   updateExchangeValues();
@@ -237,14 +265,14 @@ function updateReverseExchangeValues() {
   }
 }
 
-
+// Toggle Buy/Sell Mode
 toggleBtn.addEventListener('click', () => {
   isKasToSwodn = !isKasToSwodn;
   updateLabels();
   resetInputs();
 });
 
-
+// Currency Selection
 selectedCurrency.addEventListener("click", () => {
   currencyList.style.display = currencyList.style.display === "block" ? "none" : "block";
 });
@@ -272,26 +300,30 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// Update Labels
 function updateLabels() {
   sendLabel.textContent = isKasToSwodn ? `You Send (${selectedCurrencyValue}):` : `You Send (SNOWDN):`;
   getLabel.textContent = isKasToSwodn ? `You Get (SNOWDN):` : `You Get (${selectedCurrencyValue}):`;
 }
 
+// Reset Inputs
 function resetInputs() {
   sendInput.value = '';
   swodnInput.value = '';
 }
 
+// Log Transactions
 function logTransaction(action, currency, amount) {
   const timestamp = new Date().toLocaleString();
-  const logEntry = `Timestamp: ${timestamp}, Action: ${action}, Currency: ${currency}, Amount: ${amount}\n`;
+  const kaswareState = KaswareState.getInstance().getState();
+  const logEntry = `Timestamp: ${timestamp}, Action: ${action}, Currency: ${currency}, Amount: ${amount}, Wallet: ${kaswareState.account}, Balance: ${kaswareState.balance}\n`;
 
   fetch('/log-transaction', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ action, currency, amount, timestamp }),
+    body: JSON.stringify({ action, currency, amount, timestamp, wallet: kaswareState.account, balance: kaswareState.balance }),
   })
   .then(response => response.text())
   .then(data => {
@@ -302,6 +334,7 @@ function logTransaction(action, currency, amount) {
   });
 }
 
+// Buy/Sell Buttons
 buyBtn.addEventListener('click', () => {
   const amount = swodnInput.value;
   if (amount) {
@@ -322,3 +355,17 @@ sellBtn.addEventListener('click', () => {
 
 // Initialize Labels
 updateLabels();
+
+// Initialize Kasware Wallet
+document.addEventListener('DOMContentLoaded', () => {
+  initKaswareButton();
+  const kaswareState = KaswareState.getInstance();
+  kaswareState.addEventListener("stateChanged", (event) => {
+    const state = event.detail;
+    if (state.isConnected) {
+      console.log('Wallet connected:', state.account);
+    } else {
+      console.log('Wallet disconnected');
+    }
+  });
+});
