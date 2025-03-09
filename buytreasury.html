@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buy Treasury</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* General Reset */
     * {
       margin: 0;
       padding: 0;
@@ -22,11 +22,10 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      min-height: 100vh; /* Changed from height: 90vh to min-height: 100vh */
-      padding: 2rem 0; /* Added padding to ensure content doesn't touch the edges */
+      min-height: 100vh;
+      padding: 2rem 0;
     }
 
-    /* Treasury Section */
     .treasury-container {
       text-align: center;
       background: #112454;
@@ -36,17 +35,15 @@
       width: 90%;
       max-width: 600px;
       position: relative;
-      margin: 2rem 0; /* Added margin to ensure spacing */
+      margin: 2rem 0;
     }
 
-    /* Treasury Title */
     .treasury-container h1 {
       font-size: 2rem;
-      color: #f1c40f; /* Golden Accent */
+      color: #f1c40f;
       margin-bottom: 1.5rem;
     }
 
-    /* Treasury Address */
     .crypto-address {
       background: #0f1d40;
       color: #ffffff;
@@ -64,7 +61,6 @@
       border-color: #4682f1;
     }
 
-    /* Info Text */
     .info-text {
       font-size: 1rem;
       color: #bfcbe5;
@@ -75,7 +71,6 @@
       color: #f1c40f;
     }
 
-    /* KSDOG Note */
     .ksdog-note {
       font-size: 1rem;
       color: #11f633;
@@ -86,14 +81,12 @@
       color: #f1c40f;
     }
 
-    /* Footer Message */
     .footer-message {
       font-size: 0.9rem;
       color: #ff5e50;
       margin-top: 2rem;
     }
 
-    /* Button Styling */
     .copy-btn {
       display: inline-block;
       padding: 0.8rem 1.5rem;
@@ -113,7 +106,6 @@
       transform: translateY(-2px);
     }
 
-    /* Floating Background Animation */
     .floating-bg {
       position: absolute;
       top: 50%;
@@ -125,47 +117,6 @@
       transform: translate(-50%, -50%);
     }
 
-  
-    /* Form Styling */
-    .token-form {
-      margin-top: 1.5rem;
-    }
-
-    .token-form input {
-      width: 100%;
-      padding: 0.8rem;
-      border-radius: 8px;
-      border: 1px solid #1c3a70;
-      background: #0f1d40;
-      color: #ffffff;
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .token-form input::placeholder {
-      color: #bfcbe5;
-    }
-
-    .token-form button {
-      width: 100%;
-      padding: 0.8rem;
-      font-size: 1rem;
-      font-weight: bold;
-      color: #ffffff;
-      background-color: #27ae60;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-    }
-
-    .token-form button:hover {
-      background-color: #2ecc71;
-      transform: translateY(-2px);
-    }
-
-    /* Swap Bar Styling */
     .swap-bar {
       background: #0f1d40;
       padding: 1rem;
@@ -198,16 +149,28 @@
       background-color: #2ecc71;
       transform: translateY(-2px);
     }
+
+    .wallet-input {
+      margin: 1rem 0;
+      text-align: left;
+    }
+    .wallet-input label {
+      font-size: 1rem;
+      color: #bfcbe5;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .wallet-input input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #1c3a70;
+      background: #0f1d40;
+      color: #ffffff;
+    }
   </style>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buy Treasury</title>
-  <style>
-    /* Add your CSS styles here */
-  </style>
+
 </head>
 <body>
   <div class="floating-bg"></div>
@@ -231,6 +194,7 @@
       - 1 SNOWDN ➟ 0.02 Kaspa<br>
       - 1 SNOWDN ➟ 1000 KSDOG<br>
       - 1 SNOWDN ➟ 250 KANGO<br>
+      - 5 SNOWDN ➟ 1 MMEDIA<br>
       - 1 SNOWDN ➟ 100 NACHO<br>
       - 500 SNOWDN ➟ 1 USDC<br>
       - More than three swaps in a day may not be refunded, please check your swaps carefully!
@@ -241,12 +205,23 @@
 
     <!-- Swap Bar -->
     <div class="swap-bar">
-      <p>Submit what you want to swap to. You might be redirected to a Google Form.</p>
-      <button onclick="openGoogleFormInNewTab()">Submit</button>
+      <p>Please press "Submit" once your transaction is processed to record it.</p>
+      <!-- Wallet Address Input -->
+      <div class="wallet-input">
+        <label for="wallet-address">Your Wallet Address:</label>
+        <input type="text" id="wallet-address" placeholder="Enter your wallet address" required>
+      </div>
+      <button onclick="submitTransaction()">Submit</button>
     </div>
   </div>
 
   <script>
+    // Initialize Supabase client directly
+    const supabase = window.supabase.createClient(
+      'https://idtajnzyikcrqqyeephb.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdGFqbnp5aWtjcnFxeWVlcGhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwNzExODEsImV4cCI6MjA1NjY0NzE4MX0.dmdooctqxdRcA3DkKXHo8T2jE69AFUpccrgpm7V73lI'
+    );
+
     function copyToClipboard() {
       const address = document.getElementById('cryptoAddress').innerText.split('\n')[1].trim();
       navigator.clipboard.writeText(address).then(() => {
@@ -265,8 +240,40 @@
       });
     }
 
-    function openGoogleFormInNewTab() {
-      window.open("https://docs.google.com/forms/d/e/1FAIpQLScyYmn2NeZkdPk-gf3rRDxWiYUUCSlpbIH9PbdzKb-1z2vFOg/viewform?usp=sharing", "_blank");
+    async function submitTransaction() {
+      const transactionData = JSON.parse(localStorage.getItem('pendingTransaction'));
+      if (!transactionData) {
+        alert('No transaction data found. Please initiate a swap first.');
+        return;
+      }
+
+      const walletAddress = document.getElementById('wallet-address').value.trim();
+      if (!walletAddress) {
+        alert('Please enter your wallet address.');
+        return;
+      }
+
+      // Add wallet address to transaction data
+      const updatedTransactionData = {
+        ...transactionData,
+        wallet: walletAddress
+      };
+
+      console.log('Submitting to Supabase:', updatedTransactionData); // Debug log
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([updatedTransactionData]);
+
+      if (error) {
+        console.error('Error submitting transaction:', error);
+        alert('Failed to submit transaction: ' + error.message);
+      } else {
+        console.log('Transaction submitted:', data);
+        alert('Transaction submitted successfully!');
+        localStorage.removeItem('pendingTransaction');
+        document.getElementById('wallet-address').value = ''; // Clear input after success
+      }
     }
   </script>
 </body>

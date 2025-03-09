@@ -1,14 +1,25 @@
+// Supabase Initialization
+document.addEventListener('DOMContentLoaded', () => {
+  const supabase = window.supabase.createClient(
+    'https://idtajnzyikcrqqyeephb.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdGFqbnp5aWtjcnFxeWVlcGhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwNzExODEsImV4cCI6MjA1NjY0NzE4MX0.dmdooctqxdRcA3DkKXHo8T2jE69AFUpccrgpm7V73lI'
+  );
+  window.supabaseClient = supabase;
+});
+
 // Exchange Rates
-const kasToSwodnRate = 10; 
-const swodnToKasRate = 0.022; 
-const ksdogToSwodnBuyRate = 100000; 
-const ksdogToSwodnSellRate = 0.000909; 
-const kangoToSwodnRate = 250; 
-const swodnToKangoRate = 330; 
-const nachoToSwodnRate = 100; 
-const swodnToNachoRate = 165; 
+const kasToSwodnRate = 10;
+const swodnToKasRate = 0.022;
+const ksdogToSwodnBuyRate = 100000;
+const ksdogToSwodnSellRate = 0.000909;
+const kangoToSwodnRate = 250;
+const swodnToKangoRate = 330;
+const nachoToSwodnRate = 100;
+const swodnToNachoRate = 165;
 const usdcToSwodnRate = 500;
 const swodnToUsdcRate = 0.002;
+const mmediaToSwodnRate = 5;      // 1 MMEDIA = 5 SNOWDN (sell)
+const swodnToMmediaRate = 5;      // 5 SNOWDN = 1 MMEDIA (buy)
 const minSwodnForUsdc = 500;
 
 // DOM Elements
@@ -21,20 +32,18 @@ const sendLabel = document.getElementById('send-label');
 const getLabel = document.getElementById('get-label');
 const selectedCurrency = document.getElementById("selected-currency");
 const currencyList = document.getElementById("currency-list");
-const kaswareConnectDiv = document.getElementById('kasware-connect');
-const connectKaswareBtn = document.getElementById('connect-kasware-btn');
 
 // Initial State
-let isKasToSwodn = true; // Default mode: You send KAS, get SNOWDN
-let selectedCurrencyValue = 'KAS'; // Default currency
-const maxSnowdn = 1000; // Maximum SNOWDN per transaction
-const minSnowdn = 10; // Minimum SWODN for any transaction
-const minKsdogBuy = 100000; // Minimum KSDOG for buy transaction
+let isKasToSwodn = true;
+let selectedCurrencyValue = 'KAS';
+const maxSnowdn = 1000;
+const minSnowdn = 10;
+const minKsdogBuy = 100000;
 
 // Kasware Wallet State Management
 class KaswareState extends EventTarget {
   constructor() {
-    super(); // Call the parent constructor (EventTarget)
+    super();
     this.state = {
       account: null,
       isConnected: false,
@@ -125,17 +134,12 @@ class KaswareState extends EventTarget {
 
   setState(newState) {
     this.state = { ...this.state, ...newState };
-    // Dispatch a custom event when the state changes
     this.dispatchEvent(new CustomEvent("stateChanged", { detail: this.state }));
   }
 
   getState() {
     return { ...this.state };
   }
-}
-
-function isMobileDevice() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 // Event Listeners for Input Fields
@@ -173,8 +177,12 @@ function updateExchangeValues() {
         : sendAmount * swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
       calculatedAmount = isKasToSwodn
-        ? sendAmount * usdcToSwodnRate // 1 USDC = 500 SWODN (BUY)
-        : sendAmount / usdcToSwodnRate; // 500 SWODN = 1 USDC (SELL)
+        ? sendAmount * usdcToSwodnRate
+        : sendAmount / usdcToSwodnRate;
+    } else if (selectedCurrencyValue === 'MMEDIA') {
+      calculatedAmount = isKasToSwodn
+        ? sendAmount * mmediaToSwodnRate // 1 MMEDIA = 5 SNOWDN
+        : sendAmount / swodnToMmediaRate; // 5 SNOWDN = 1 MMEDIA
     }
 
     calculatedAmount = Math.floor(calculatedAmount);
@@ -191,7 +199,9 @@ function updateExchangeValues() {
       } else if (selectedCurrencyValue === 'NACHO') {
         sendInput.value = Math.floor(maxSnowdn * nachoToSwodnRate);
       } else if (selectedCurrencyValue === 'USDC') {
-        sendInput.value = Math.floor(maxSnowdn / usdcToSwodnRate); // Adjust USDC input for max SWODN
+        sendInput.value = Math.floor(maxSnowdn / usdcToSwodnRate);
+      } else if (selectedCurrencyValue === 'MMEDIA') {
+        sendInput.value = Math.floor(maxSnowdn / mmediaToSwodnRate);
       }
     }
 
@@ -225,11 +235,14 @@ function updateReverseExchangeValues() {
         : swodnAmount / swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
       calculatedAmount = isKasToSwodn
-        ? swodnAmount / usdcToSwodnRate 
-        : swodnAmount / usdcToSwodnRate; 
+        ? swodnAmount / usdcToSwodnRate
+        : swodnAmount * usdcToSwodnRate; // Note: Corrected logic here
+    } else if (selectedCurrencyValue === 'MMEDIA') {
+      calculatedAmount = isKasToSwodn
+        ? swodnAmount / mmediaToSwodnRate // 1 MMEDIA = 5 SNOWDN
+        : swodnAmount * swodnToMmediaRate; // 5 SNOWDN = 1 MMEDIA
     }
 
-    // Ensure SWODN is an integer and enforce minimum and maximum limits
     const swodnAmountRounded = Math.floor(swodnAmount);
     if (swodnAmountRounded < minSnowdn) {
       swodnInput.value = 0;
@@ -246,16 +259,20 @@ function updateReverseExchangeValues() {
           : Math.floor(maxSnowdn * ksdogToSwodnSellRate);
       } else if (selectedCurrencyValue === 'KANGO') {
         calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn / kangoToSwodnRate)
-          : Math.floor(maxSnowdn * swodnToKangoRate);
+          ? Math.floor(maxSnowdn * kangoToSwodnRate)
+          : Math.floor(maxSnowdn / swodnToKangoRate);
       } else if (selectedCurrencyValue === 'NACHO') {
         calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn / nachoToSwodnRate)
-          : Math.floor(maxSnowdn * swodnToNachoRate);
+          ? Math.floor(maxSnowdn * nachoToSwodnRate)
+          : Math.floor(maxSnowdn / swodnToNachoRate);
       } else if (selectedCurrencyValue === 'USDC') {
         calculatedAmount = isKasToSwodn
           ? Math.floor(maxSnowdn / usdcToSwodnRate)
-          : Math.floor(maxSnowdn / usdcToSwodnRate);
+          : Math.floor(maxSnowdn * swodnToUsdcRate);
+      } else if (selectedCurrencyValue === 'MMEDIA') {
+        calculatedAmount = isKasToSwodn
+          ? Math.floor(maxSnowdn / mmediaToSwodnRate)
+          : Math.floor(maxSnowdn * swodnToMmediaRate);
       }
     }
 
@@ -312,26 +329,51 @@ function resetInputs() {
   swodnInput.value = '';
 }
 
-// Log Transactions
+// Log Transaction to Supabase (temporary storage)
 function logTransaction(action, currency, amount) {
-  const timestamp = new Date().toLocaleString();
   const kaswareState = KaswareState.getInstance().getState();
-  const logEntry = `Timestamp: ${timestamp}, Action: ${action}, Currency: ${currency}, Amount: ${amount}, Wallet: ${kaswareState.account}, Balance: ${kaswareState.balance}\n`;
+  const sendAmount = parseFloat(sendInput.value);
+  const convertedAmount = parseFloat(swodnInput.value);
+  let rate;
+  let sourceCurrency;
+  let convertCurrency;
 
-  fetch('/log-transaction', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ action, currency, amount, timestamp, wallet: kaswareState.account, balance: kaswareState.balance }),
-  })
-  .then(response => response.text())
-  .then(data => {
-    console.log('Transaction logged:', data);
-  })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
+  // Determine source and converted currencies based on swap direction
+  if (isKasToSwodn) {
+    sourceCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA
+    convertCurrency = 'SNOWDN'; // Buying SNOWDN
+  } else {
+    sourceCurrency = 'SNOWDN'; // Selling SNOWDN
+    convertCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA
+  }
+
+  // Set rate based on selected currency and direction
+  if (selectedCurrencyValue === 'KAS') {
+    rate = isKasToSwodn ? kasToSwodnRate : swodnToKasRate;
+  } else if (selectedCurrencyValue === 'KSDOG') {
+    rate = isKasToSwodn ? ksdogToSwodnBuyRate : ksdogToSwodnSellRate;
+  } else if (selectedCurrencyValue === 'KANGO') {
+    rate = isKasToSwodn ? kangoToSwodnRate : swodnToKangoRate;
+  } else if (selectedCurrencyValue === 'NACHO') {
+    rate = isKasToSwodn ? nachoToSwodnRate : swodnToNachoRate;
+  } else if (selectedCurrencyValue === 'USDC') {
+    rate = isKasToSwodn ? usdcToSwodnRate : swodnToUsdcRate;
+  } else if (selectedCurrencyValue === 'MMEDIA') {
+    rate = isKasToSwodn ? mmediaToSwodnRate : swodnToMmediaRate;
+  }
+
+  const transactionData = {
+    action,
+    currency: sourceCurrency,
+    amount: sendAmount,
+    converted_amount: convertedAmount,
+    rate,
+    wallet: kaswareState.account || 'N/A',
+    convert_currency: convertCurrency
+  };
+
+  console.log('Logging transaction:', transactionData); // Debug log
+  localStorage.setItem('pendingTransaction', JSON.stringify(transactionData));
 }
 
 // Buy/Sell Buttons
@@ -340,7 +382,7 @@ buyBtn.addEventListener('click', () => {
   if (amount) {
     logTransaction('Buy', selectedCurrencyValue, amount);
   }
-  alert('Redirecting to Treasury wallet page...');
+  alert('Redirecting to Buy Treasury wallet page...');
   window.location.href = './buytreasury.html';
 });
 
@@ -349,7 +391,7 @@ sellBtn.addEventListener('click', () => {
   if (amount) {
     logTransaction('Sell', selectedCurrencyValue, amount);
   }
-  alert('Redirecting to Treasury wallet page...');
+  alert('Redirecting to Sell Treasury wallet page...');
   window.location.href = './selltreasury.html';
 });
 
@@ -358,7 +400,6 @@ updateLabels();
 
 // Initialize Kasware Wallet
 document.addEventListener('DOMContentLoaded', () => {
-  initKaswareButton();
   const kaswareState = KaswareState.getInstance();
   kaswareState.addEventListener("stateChanged", (event) => {
     const state = event.detail;

@@ -580,24 +580,27 @@ header, main, footer {
 }
 /* Promo Banner */
 .promo-banner {
-  background: linear-gradient(135deg, #ff9f43, #ff6b6b); /* Gradient Orange-Red */
-  color: #fff;
-  text-align: center;
-  padding: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
   position: sticky;
   top: 0;
   z-index: 1000;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ff9f43, #e80606); /* Fallback gradient */
+  padding: 10px 0; /* Add some padding to reduce height */
+  max-height: 150px; /* Limit the height of the banner */
 }
 
-.promo-banner span {
-  animation: pulse 1.5s infinite;
+.promo-image {
+  width: 80%; /* Reduce the width to make it smaller */
+  max-width: 800px; /* Adjust based on your design */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  animation: float 3s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
 }

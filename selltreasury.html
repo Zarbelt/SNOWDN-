@@ -4,278 +4,274 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sell Treasury</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #0b132b, #041024);
-  color: #ffffff;
-  line-height: 1.6;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh; /* Changed from height: 90vh to min-height: 100vh */
-  padding: 2rem 0; /* Added padding to ensure content doesn't touch the edges */
-}
-
-/* Treasury Section */
-.treasury-container {
-  text-align: center;
-  background: #0e1b3a;
-  border-radius: 15px;
-  padding: 2rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-  width: 90%;
-  max-width: 600px;
-  position: relative;
-  margin: 2rem 0; /* Added margin to ensure spacing */
-}
-
-/* Treasury Title */
-.treasury-container h1 {
-  font-size: 2rem;
-  color: #e74c3c; /* Red Accent */
-  margin-bottom: 1.5rem;
-}
-
-/* Treasury Instructions */
-.instructions {
-  background: #142844;
-  color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 10px;
-  font-size: 1.2rem;
-  font-family: 'Courier New', Courier, monospace;
-  margin-bottom: 2rem;
-  border: 1px solid #1b4c74;
-  word-wrap: break-word;
-}
-
-.instructions:hover {
-  background: #193459;
-  border-color: #ff5e57;
-}
-
-/* Info Text */
-.info-text {
-  font-size: 1rem;
-  color: #cfd9e7;
-  margin-bottom: 1rem;
-}
-
-.info-text strong {
-  color: #e74c3c;
-}
-
-/* KSDOG Note */
-.ksdog-note {
-  font-size: 1rem;
-  color: #11f633;
-  margin-bottom: 1rem;
-}
-
-.ksdog-note strong {
-  color: #e74c3c;
-}
-
-/* Footer Message */
-.footer-message {
-  font-size: 0.9rem;
-  color: #e67e22;
-  margin-top: 2rem;
-}
-
-/* Button Styling */
-.copy-btn {
-  display: inline-block;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #ffffff;
-  background-color: #e74c3c;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.copy-btn:hover {
-  background-color: #ff6b5a;
-  transform: translateY(-2px);
-}
-
-/* Floating Background Animation */
-.floating-bg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
-  animation: float 8s infinite linear;
-  transform: translate(-50%, -50%);
-}
-
-@keyframes float {
-  0% {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
-.token-form {
-  margin-top: 1.5rem;
-}
-
-.token-form input {
-  width: 100%;
-  padding: 0.8rem;
-  border-radius: 8px;
-  border: 1px solid #1b4c74;
-  background: #142844;
-  color: #ffffff;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-}
-
-.token-form input::placeholder {
-  color: #cfd9e7;
-}
-
-.token-form button {
-  width: 100%;
-  padding: 0.8rem;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #ffffff;
-  background-color: #e74c3c;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.token-form button:hover {
-  background-color: #ff6b5a;
-  transform: translateY(-2px);
-}
-
-/* Swap Bar Styling */
-.swap-bar {
-  background: #142844;
-  padding: 1rem;
-  border-radius: 10px;
-  margin-top: 1.5rem;
-  border: 1px solid #1b4c74;
-}
-
-.swap-bar p {
-  font-size: 1rem;
-  color: #cfd9e7;
-  margin-bottom: 1rem;
-}
-
-.swap-bar button {
-  width: 100%;
-  padding: 0.8rem;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #ffffff;
-  background-color: #e74c3c;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.swap-bar button:hover {
-  background-color: #ff6b5a;
-  transform: translateY(-2px);
-}
-  </style>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sell Treasury</title>
-  <style>
-    /* Add your CSS styles here */
-  </style>
-</head>
-<body>
-  <div class="floating-bg"></div>
-  <div class="treasury-container">
-    <h1>Sell Treasury</h1>
-    <div class="instructions" id="kaspaInstructions">
-      KASPA SWAP: SEND YOUR KRC20 TOKENS TO THIS ADDRESS: <br>
-      <strong>kaspa:qyp60g7z60kk77vrjm2muz5knlex9uxlp88r2sznwsl30mxzrxwp2cglt7f5czn</strong>
-    </div>
-    <div class="instructions" id="solanaInstructions">
-      USDC SWAP : SEND YOUR USDC SOLANA TO THIS ADDRESS <br>
-      <strong>CG9shmbqgZKHTGJdPm25rQ2BQUgR6VKfCuALzAdTgxto</strong>
-    </div>
-    <button class="copy-btn" onclick="copyKaspaToClipboard()">Copy Kaspa Address</button>
-    <button class="copy-btn" onclick="copySolanaToClipboard()">Copy Solana Address</button>
-    <p class="info-text">
-      <strong>Note:</strong> Send Tokens to the above address to complete your transaction.
-    </p>
-    <p class="ksdog-note">
-      <strong>SELL Rates:</strong> Swap Crypto at these Rates!<br>
-      <strong>Rates:</strong> Swap Crypto at these rates!<br>
-      - One Kaspa ➟ 10 SNOWDN<br>
-      - 100K KSDOG ➟ 1 SNOWDN<br>
-      - 300 KANGO ➟ 1 SNOWDN<br>
-      - 150 NACHO ➟ 1 SNOWDN<br>
-      - One USDC ➟ 500 SNOWDN<br>
-    </p>
-    <p class="footer-message">
-      PAYOUTS WILL BE PROCESSED WITHIN 24 HOURS OR LESS.
-    </p>
-
-    <!-- Swap Bar -->
-    <div class="swap-bar">
-      <p>Submit what you want to swap to. You might be redirected to a Google Form.</p>
-      <button onclick="openGoogleFormInNewTab()">Submit</button>
-    </div>
-  </div>
-
-  <script>
-    function copyKaspaToClipboard() {
-      const address = document.getElementById('kaspaInstructions').innerText.split('\n')[1].trim();
-      navigator.clipboard.writeText(address).then(() => {
-        alert('Kaspa address copied to clipboard!');
-      }).catch(err => {
-        console.error('Failed to copy address: ', err);
-      });
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    function copySolanaToClipboard() {
-      const address = document.getElementById('solanaInstructions').innerText.split('\n')[1].trim();
-      navigator.clipboard.writeText(address).then(() => {
-        alert('Solana address copied to clipboard!');
-      }).catch(err => {
-        console.error('Failed to copy address: ', err);
-      });
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #0b132b, #041024);
+      color: #ffffff;
+      line-height: 1.6;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 0;
     }
 
-    function openGoogleFormInNewTab() {
-      window.open("https://docs.google.com/forms/d/e/1FAIpQLScyYmn2NeZkdPk-gf3rRDxWiYUUCSlpbIH9PbdzKb-1z2vFOg/viewform?usp=sharing", "_blank");
+    .treasury-container {
+      text-align: center;
+      background: #0e1b3a;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      margin: 2rem 0;
     }
-  </script>
-</body>
-</html>
-  </script>
-</body>
-</html>
+
+    .treasury-container h1 {
+      font-size: 2rem;
+      color: #e74c3c;
+      margin-bottom: 1.5rem;
+    }
+
+    .instructions {
+      background: #142844;
+      color: #ffffff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      font-family: 'Courier New', Courier, monospace;
+      margin-bottom: 2rem;
+      border: 1px solid #1b4c74;
+      word-wrap: break-word;
+    }
+
+    .instructions:hover {
+      background: #193459;
+      border-color: #ff5e57;
+    }
+
+    .info-text {
+      font-size: 1rem;
+      color: #cfd9e7;
+      margin-bottom: 1rem;
+    }
+
+    .info-text strong {
+      color: #e74c3c;
+    }
+
+    .ksdog-note {
+      font-size: 1rem;
+      color: #11f633;
+      margin-bottom: 1rem;
+    }
+
+    .ksdog-note strong {
+      color: #e74c3c;
+    }
+
+    .footer-message {
+      font-size: 0.9rem;
+      color: #e67e22;
+      margin-top: 2rem;
+    }
+
+    .copy-btn {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #e74c3c;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      background-color: #ff6b5a;
+      transform: translateY(-2px);
+    }
+
+    .floating-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+      animation: float 8s infinite linear;
+      transform: translate(-50%, -50%);
+    }
+
+    .swap-bar {
+      background: #142844;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1.5rem;
+      border: 1px solid #1b4c74;
+    }
+
+    .swap-bar p {
+      font-size: 1rem;
+      color: #cfd9e7;
+      margin-bottom: 1rem;
+    }
+
+    .swap-bar button {
+      width: 100%;
+      padding: 0.8rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #e74c3c;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .swap-bar button:hover {
+      background-color: #ff6b5a;
+      transform: translateY(-2px);
+    }
+
+      .wallet-input {
+        margin: 1rem 0;
+        text-align: left;
+      }
+      .wallet-input label {
+        font-size: 1rem;
+        color: #cfd9e7;
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      .wallet-input input {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #1b4c74;
+        background: #142844;
+        color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="floating-bg"></div>
+    <div class="treasury-container">
+      <h1>Sell Treasury</h1>
+      <div class="instructions" id="kaspaInstructions">
+        KASPA SWAP: SEND YOUR KRC20 TOKENS TO THIS ADDRESS: <br>
+        <strong>kaspa:qyp60g7z60kk77vrjm2muz5knlex9uxlp88r2sznwsl30mxzrxwp2cglt7f5czn</strong>
+      </div>
+      <div class="instructions" id="solanaInstructions">
+        USDC SWAP : SEND YOUR USDC SOLANA TO THIS ADDRESS <br>
+        <strong>CG9shmbqgZKHTGJdPm25rQ2BQUgR6VKfCuALzAdTgxto</strong>
+      </div>
+      <button class="copy-btn" onclick="copyKaspaToClipboard()">Copy Kaspa Address</button>
+      <button class="copy-btn" onclick="copySolanaToClipboard()">Copy Solana Address</button>
+      <p class="info-text">
+        <strong>Note:</strong> Send Tokens to the above address to complete your transaction.
+      </p>
+      <p class="ksdog-note">
+        <strong>SELL Rates:</strong> Swap Crypto at these Rates!<br>
+        - 1 Kaspa ➟ 10 SNOWDN<br>
+        - 100K KSDOG ➟ 1 SNOWDN<br>
+        - 300 KANGO ➟ 1 SNOWDN<br>
+        - 150 NACHO ➟ 1 SNOWDN<br>
+        - 1 MMEDIA ➟ 5 SNOWDN<br>
+        - 1 USDC ➟ 500 SNOWDN<br>
+      </p>
+      <p class="footer-message">
+        PAYOUTS WILL BE PROCESSED WITHIN 24 HOURS OR LESS.
+      </p>
+  
+      <!-- Swap Bar -->
+      <div class="swap-bar">
+        <p>Please press "Submit" once your transaction is processed to record it.</p>
+        <!-- Wallet Address Input -->
+        <div class="wallet-input">
+          <label for="wallet-address">Your Wallet Address:</label>
+          <input type="text" id="wallet-address" placeholder="Enter your wallet address" required>
+        </div>
+        <button onclick="submitTransaction()">Submit</button>
+      </div>
+    </div>
+  
+    <script>
+      // Initialize Supabase client directly
+      const supabase = window.supabase.createClient(
+        'https://idtajnzyikcrqqyeephb.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdGFqbnp5aWtjcnFxeWVlcGhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwNzExODEsImV4cCI6MjA1NjY0NzE4MX0.dmdooctqxdRcA3DkKXHo8T2jE69AFUpccrgpm7V73lI'
+      );
+  
+      function copyKaspaToClipboard() {
+        const address = document.getElementById('kaspaInstructions').innerText.split('\n')[1].trim();
+        navigator.clipboard.writeText(address).then(() => {
+          alert('Kaspa address copied to clipboard!');
+        }).catch(err => {
+          console.error('Failed to copy address: ', err);
+        });
+      }
+  
+      function copySolanaToClipboard() {
+        const address = document.getElementById('solanaInstructions').innerText.split('\n')[1].trim();
+        navigator.clipboard.writeText(address).then(() => {
+          alert('Solana address copied to clipboard!');
+        }).catch(err => {
+          console.error('Failed to copy address: ', err);
+        });
+      }
+  
+      async function submitTransaction() {
+        const transactionData = JSON.parse(localStorage.getItem('pendingTransaction'));
+        if (!transactionData) {
+          alert('No transaction data found. Please initiate a swap first.');
+          return;
+        }
+  
+        const walletAddress = document.getElementById('wallet-address').value.trim();
+        if (!walletAddress) {
+          alert('Please enter your wallet address.');
+          return;
+        }
+  
+        // Add wallet address to transaction data
+        const updatedTransactionData = {
+          ...transactionData,
+          wallet: walletAddress
+        };
+  
+        console.log('Submitting to Supabase:', updatedTransactionData); // Debug log
+  
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert([updatedTransactionData]);
+  
+        if (error) {
+          console.error('Error submitting transaction:', error);
+          alert('Failed to submit transaction: ' + error.message);
+        } else {
+          console.log('Transaction submitted:', data);
+          alert('Transaction submitted successfully!');
+          localStorage.removeItem('pendingTransaction');
+          document.getElementById('wallet-address').value = ''; // Clear input after success
+        }
+      }
+    </script>
+  </body>
+  </html>
