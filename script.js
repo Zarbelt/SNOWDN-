@@ -18,8 +18,10 @@ const nachoToSwodnRate = 100;
 const swodnToNachoRate = 165;
 const usdcToSwodnRate = 500;
 const swodnToUsdcRate = 0.002;
-const mmediaToSwodnRate = 5;      // 1 MMEDIA = 5 SNOWDN (sell)
-const swodnToMmediaRate = 5;      // 5 SNOWDN = 1 MMEDIA (buy)
+const mmediaToSwodnRate = 5; 
+const swodnToMmediaRate = 5; 
+const ghoadToSwodnRate = 100; 
+const swodnToGhoadRate = 300; 
 const minSwodnForUsdc = 500;
 
 // DOM Elements
@@ -40,7 +42,7 @@ const maxSnowdn = 1000;
 const minSnowdn = 10;
 const minKsdogBuy = 100000;
 
-// Kasware Wallet State Management
+
 class KaswareState extends EventTarget {
   constructor() {
     super();
@@ -181,8 +183,12 @@ function updateExchangeValues() {
         : sendAmount / usdcToSwodnRate;
     } else if (selectedCurrencyValue === 'MMEDIA') {
       calculatedAmount = isKasToSwodn
-        ? sendAmount * mmediaToSwodnRate // 1 MMEDIA = 5 SNOWDN
-        : sendAmount / swodnToMmediaRate; // 5 SNOWDN = 1 MMEDIA
+        ? sendAmount * mmediaToSwodnRate 
+        : sendAmount / swodnToMmediaRate; 
+    } else if (selectedCurrencyValue === 'GHOAD') {
+      calculatedAmount = isKasToSwodn
+        ? sendAmount / ghoadToSwodnRate
+        : sendAmount * swodnToGhoadRate;
     }
 
     calculatedAmount = Math.floor(calculatedAmount);
@@ -202,6 +208,8 @@ function updateExchangeValues() {
         sendInput.value = Math.floor(maxSnowdn / usdcToSwodnRate);
       } else if (selectedCurrencyValue === 'MMEDIA') {
         sendInput.value = Math.floor(maxSnowdn / mmediaToSwodnRate);
+      } else if (selectedCurrencyValue === 'GHOAD') {
+        sendInput.value = Math.floor(maxSnowdn * ghoadToSwodnRate);
       }
     }
 
@@ -236,11 +244,15 @@ function updateReverseExchangeValues() {
     } else if (selectedCurrencyValue === 'USDC') {
       calculatedAmount = isKasToSwodn
         ? swodnAmount / usdcToSwodnRate
-        : swodnAmount * usdcToSwodnRate; // Note: Corrected logic here
+        : swodnAmount * swodnToUsdcRate;
     } else if (selectedCurrencyValue === 'MMEDIA') {
       calculatedAmount = isKasToSwodn
-        ? swodnAmount / mmediaToSwodnRate // 1 MMEDIA = 5 SNOWDN
-        : swodnAmount * swodnToMmediaRate; // 5 SNOWDN = 1 MMEDIA
+        ? swodnAmount / mmediaToSwodnRate 
+        : swodnAmount * swodnToMmediaRate; 
+    } else if (selectedCurrencyValue === 'GHOAD') {
+      calculatedAmount = isKasToSwodn
+        ? swodnAmount * ghoadToSwodnRate 
+        : swodnAmount * swodnToGhoadRate; 
     }
 
     const swodnAmountRounded = Math.floor(swodnAmount);
@@ -273,6 +285,10 @@ function updateReverseExchangeValues() {
         calculatedAmount = isKasToSwodn
           ? Math.floor(maxSnowdn / mmediaToSwodnRate)
           : Math.floor(maxSnowdn * swodnToMmediaRate);
+      } else if (selectedCurrencyValue === 'GHOAD') {
+        calculatedAmount = isKasToSwodn
+          ? Math.floor(maxSnowdn * ghoadToSwodnRate)
+          : Math.floor(maxSnowdn * swodnToGhoadRate);
       }
     }
 
@@ -340,11 +356,11 @@ function logTransaction(action, currency, amount) {
 
   // Determine source and converted currencies based on swap direction
   if (isKasToSwodn) {
-    sourceCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA
+    sourceCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA, GHOAD
     convertCurrency = 'SNOWDN'; // Buying SNOWDN
   } else {
     sourceCurrency = 'SNOWDN'; // Selling SNOWDN
-    convertCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA
+    convertCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA, GHOAD
   }
 
   // Set rate based on selected currency and direction
@@ -360,6 +376,8 @@ function logTransaction(action, currency, amount) {
     rate = isKasToSwodn ? usdcToSwodnRate : swodnToUsdcRate;
   } else if (selectedCurrencyValue === 'MMEDIA') {
     rate = isKasToSwodn ? mmediaToSwodnRate : swodnToMmediaRate;
+  } else if (selectedCurrencyValue === 'GHOAD') {
+    rate = isKasToSwodn ? ghoadToSwodnRate : swodnToGhoadRate;
   }
 
   const transactionData = {
