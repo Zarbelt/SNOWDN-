@@ -548,25 +548,21 @@ header, main, footer {
   border-radius: 50%;
   z-index: 0;
 }
-
-#kasware-connect button:hover {
-  background: linear-gradient(135deg, #45a049, #1B5E20); 
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); 
-  transform: translateY(-2px); 
+#kasware-connect {
+  margin: 10px 0;
 }
 
-#kasware-connect button:hover::before {
-  transform: translate(-50%, -50%) scale(1); 
+#connect-kasware-btn {
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-#kasware-connect button:active {
-  transform: translateY(0); 
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
-}
-
-#kasware-connect button span {
-  position: relative;
-  z-index: 1; 
+#connect-kasware-btn:hover {
+  background-color: #45a049;
 }
 .nav-link {
   color: #fff;

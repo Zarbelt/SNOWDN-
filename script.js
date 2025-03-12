@@ -1,4 +1,3 @@
-// Supabase Initialization
 document.addEventListener('DOMContentLoaded', () => {
   const supabase = window.supabase.createClient(
     'https://idtajnzyikcrqqyeephb.supabase.co',
@@ -7,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.supabaseClient = supabase;
 });
 
-// Exchange Rates
 const kasToSwodnRate = 10;
 const swodnToKasRate = 0.022;
 const ksdogToSwodnBuyRate = 100000;
@@ -24,7 +22,6 @@ const ghoadToSwodnRate = 100;
 const swodnToGhoadRate = 300; 
 const minSwodnForUsdc = 500;
 
-// DOM Elements
 const sendInput = document.getElementById('send-amount');
 const swodnInput = document.getElementById('swodn-amount');
 const buyBtn = document.getElementById('buy-btn');
@@ -34,14 +31,14 @@ const sendLabel = document.getElementById('send-label');
 const getLabel = document.getElementById('get-label');
 const selectedCurrency = document.getElementById("selected-currency");
 const currencyList = document.getElementById("currency-list");
+const connectBtn = document.getElementById('connect-kasware-btn');
+const kaswareConnectDiv = document.getElementById('kasware-connect');
 
-// Initial State
 let isKasToSwodn = true;
 let selectedCurrencyValue = 'KAS';
 const maxSnowdn = 1000;
 const minSnowdn = 10;
 const minKsdogBuy = 100000;
-
 
 class KaswareState extends EventTarget {
   constructor() {
@@ -69,13 +66,20 @@ class KaswareState extends EventTarget {
       window.kasware.on("accountsChanged", this.handleAccountsChanged.bind(this));
       window.kasware.on("chainChanged", this.handleChainChanged.bind(this));
       window.kasware.on("disconnect", this.handleDisconnect.bind(this));
+    } else {
+      this.setState({ error: "Kasware wallet not detected" });
     }
   }
 
   async connectWallet() {
+    if (!window.kasware) {
+      alert("Please install Kasware Wallet extension");
+      return;
+    }
+
     this.setState({ isLoading: true, error: null });
     try {
-      const accounts = await window.kasware.getAccounts();
+      const accounts = await window.kasware.requestAccounts();
       if (accounts.length > 0) {
         this.setState({
           account: accounts[0],
@@ -83,11 +87,15 @@ class KaswareState extends EventTarget {
           isLoading: false,
         });
         await this.refreshBalances();
-      } else {
-        throw new Error("No accounts found. Please unlock your wallet.");
+        kaswareConnectDiv.style.display = 'none';
+        // Update button text with shortened address
+        connectBtn.textContent = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
       }
     } catch (error) {
-      this.setState({ error: "Failed to connect wallet", isLoading: false });
+      this.setState({ 
+        error: error.message || "Failed to connect wallet", 
+        isLoading: false 
+      });
       throw error;
     }
   }
@@ -97,13 +105,23 @@ class KaswareState extends EventTarget {
       try {
         const [balance, krc20Balances] = await Promise.all([
           window.kasware.getBalance(),
-          window.kasware.getKRC20Balances(),
+          window.kasware.getKRC20Balance()
         ]);
         this.setState({ balance, krc20Balances });
       } catch (error) {
         this.setState({ error: "Failed to fetch balances" });
         throw error;
       }
+    }
+  }
+
+  async sendTransaction(toAddress, amount) {
+    try {
+      const txid = await window.kasware.sendKaspa(toAddress, amount);
+      return txid;
+    } catch (error) {
+      this.setState({ error: "Transaction failed" });
+      throw error;
     }
   }
 
@@ -115,8 +133,12 @@ class KaswareState extends EventTarget {
         balance: null,
         krc20Balances: null,
       });
+      connectBtn.textContent = "Connect Kasware Wallet";
+      kaswareConnectDiv.style.display = 'block';
     } else {
       this.setState({ account: accounts[0], isConnected: true });
+      connectBtn.textContent = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
+      kaswareConnectDiv.style.display = 'none';
       this.refreshBalances().catch(console.error);
     }
   }
@@ -132,6 +154,8 @@ class KaswareState extends EventTarget {
       balance: null,
       krc20Balances: null,
     });
+    connectBtn.textContent = "Connect Kasware Wallet";
+    kaswareConnectDiv.style.display = 'block';
   }
 
   setState(newState) {
@@ -144,7 +168,6 @@ class KaswareState extends EventTarget {
   }
 }
 
-// Event Listeners for Input Fields
 sendInput.addEventListener('input', () => {
   updateExchangeValues();
 });
@@ -153,7 +176,15 @@ swodnInput.addEventListener('input', () => {
   updateReverseExchangeValues();
 });
 
-// Update Exchange Values
+connectBtn.addEventListener('click', async () => {
+  const kaswareState = KaswareState.getInstance();
+  try {
+    await kaswareState.connectWallet();
+  } catch (error) {
+    console.error('Connection failed:', error);
+  }
+});
+
 function updateExchangeValues() {
   const sendAmount = parseFloat(sendInput.value);
   let calculatedAmount = 0;
@@ -219,7 +250,6 @@ function updateExchangeValues() {
   }
 }
 
-// Update Reverse Exchange Values
 function updateReverseExchangeValues() {
   const swodnAmount = parseFloat(swodnInput.value);
   let calculatedAmount = 0;
@@ -298,14 +328,12 @@ function updateReverseExchangeValues() {
   }
 }
 
-// Toggle Buy/Sell Mode
 toggleBtn.addEventListener('click', () => {
   isKasToSwodn = !isKasToSwodn;
   updateLabels();
   resetInputs();
 });
 
-// Currency Selection
 selectedCurrency.addEventListener("click", () => {
   currencyList.style.display = currencyList.style.display === "block" ? "none" : "block";
 });
@@ -333,20 +361,17 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// Update Labels
 function updateLabels() {
   sendLabel.textContent = isKasToSwodn ? `You Send (${selectedCurrencyValue}):` : `You Send (SNOWDN):`;
   getLabel.textContent = isKasToSwodn ? `You Get (SNOWDN):` : `You Get (${selectedCurrencyValue}):`;
 }
 
-// Reset Inputs
 function resetInputs() {
   sendInput.value = '';
   swodnInput.value = '';
 }
 
-// Log Transaction to Supabase (temporary storage)
-function logTransaction(action, currency, amount) {
+async function logTransactionToSupabase(action, currency, amount, txid = null) {
   const kaswareState = KaswareState.getInstance().getState();
   const sendAmount = parseFloat(sendInput.value);
   const convertedAmount = parseFloat(swodnInput.value);
@@ -354,16 +379,14 @@ function logTransaction(action, currency, amount) {
   let sourceCurrency;
   let convertCurrency;
 
-  // Determine source and converted currencies based on swap direction
   if (isKasToSwodn) {
-    sourceCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA, GHOAD
-    convertCurrency = 'SNOWDN'; // Buying SNOWDN
+    sourceCurrency = selectedCurrencyValue;
+    convertCurrency = 'SNOWDN';
   } else {
-    sourceCurrency = 'SNOWDN'; // Selling SNOWDN
-    convertCurrency = selectedCurrencyValue; // e.g., KAS, MMEDIA, GHOAD
+    sourceCurrency = 'SNOWDN';
+    convertCurrency = selectedCurrencyValue;
   }
 
-  // Set rate based on selected currency and direction
   if (selectedCurrencyValue === 'KAS') {
     rate = isKasToSwodn ? kasToSwodnRate : swodnToKasRate;
   } else if (selectedCurrencyValue === 'KSDOG') {
@@ -382,49 +405,116 @@ function logTransaction(action, currency, amount) {
 
   const transactionData = {
     action,
-    currency: sourceCurrency,
+    source_currency: sourceCurrency,
     amount: sendAmount,
     converted_amount: convertedAmount,
     rate,
-    wallet: kaswareState.account || 'N/A',
-    convert_currency: convertCurrency
+    wallet_address: kaswareState.account || 'N/A',
+    convert_currency: convertCurrency,
+    transaction_id: txid,
+    created_at: new Date().toISOString()
   };
 
-  console.log('Logging transaction:', transactionData); // Debug log
-  localStorage.setItem('pendingTransaction', JSON.stringify(transactionData));
+  // For manual transactions, store in localStorage
+  if (!txid) {
+    console.log('Logging manual transaction:', transactionData);
+    localStorage.setItem('pendingTransaction', JSON.stringify(transactionData));
+  } 
+  // For automatic transactions, store directly in Supabase
+  else {
+    const { error } = await window.supabaseClient
+      .from('transactions')
+      .insert([transactionData]);
+    
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
+    console.log('Transaction recorded in Supabase:', transactionData);
+  }
 }
 
-// Buy/Sell Buttons
-buyBtn.addEventListener('click', () => {
-  const amount = swodnInput.value;
-  if (amount) {
-    logTransaction('Buy', selectedCurrencyValue, amount);
+async function handleTransaction(action) {
+  const kaswareState = KaswareState.getInstance();
+  const state = kaswareState.getState();
+  
+  if (!state.isConnected) {
+    alert("Please connect Kasware wallet first");
+    return;
   }
-  alert('Redirecting to Buy Treasury wallet page...');
-  window.location.href = './buytreasury.html';
+
+  const sendAmount = parseFloat(sendInput.value);
+  const convertedAmount = parseFloat(swodnInput.value);
+  
+  if (!sendAmount || !convertedAmount) {
+    alert("Please enter valid amounts");
+    return;
+  }
+
+  const paymentMethod = confirm("Would you like to pay automatically?\nPress OK for automatic payment or Cancel for manual payment");
+  const treasuryAddress = "kaspa:qyp60g7z60kk77vrjm2muz5knlex9uxlp88r2sznwsl30mxzrxwp2cglt7f5czn";
+
+  if (paymentMethod) { 
+    try {
+      let txid;
+      if (action === 'Buy' && isKasToSwodn && selectedCurrencyValue === 'KAS') {
+        const amountInSompi = Math.floor(sendAmount * 100000000);
+        txid = await kaswareState.sendTransaction(treasuryAddress, amountInSompi);
+      }
+      
+      if (txid) {
+        await logTransactionToSupabase(action, selectedCurrencyValue, convertedAmount, txid);
+        return txid;
+      }
+    } catch (error) {
+      console.error(`${action} failed:`, error);
+      throw error;
+    }
+  } else { // Manual payment
+    await logTransactionToSupabase(action, selectedCurrencyValue, convertedAmount);
+    return null;
+  }
+}
+
+buyBtn.addEventListener('click', async () => {
+  try {
+    const txid = await handleTransaction('Buy');
+    if (txid) {
+      alert(`Automatic transaction successful! TXID: ${txid}`);
+    }
+    window.location.href = './buytreasury.html';
+  } catch (error) {
+    alert('Transaction failed. Please try again.');
+  }
 });
 
-sellBtn.addEventListener('click', () => {
-  const amount = swodnInput.value;
-  if (amount) {
-    logTransaction('Sell', selectedCurrencyValue, amount);
+sellBtn.addEventListener('click', async () => {
+  try {
+    const txid = await handleTransaction('Sell');
+    if (txid) {
+      alert(`Automatic transaction successful! TXID: ${txid}`);
+    }
+    window.location.href = './selltreasury.html';
+  } catch (error) {
+    alert('Transaction failed. Please try again.');
   }
-  alert('Redirecting to Sell Treasury wallet page...');
-  window.location.href = './selltreasury.html';
 });
 
-// Initialize Labels
-updateLabels();
-
-// Initialize Kasware Wallet
 document.addEventListener('DOMContentLoaded', () => {
   const kaswareState = KaswareState.getInstance();
+  
+  if (!window.kasware || !kaswareState.getState().isConnected) {
+    kaswareConnectDiv.style.display = 'block';
+  }
+
   kaswareState.addEventListener("stateChanged", (event) => {
     const state = event.detail;
+    console.log('Wallet state changed:', state);
     if (state.isConnected) {
       console.log('Wallet connected:', state.account);
-    } else {
-      console.log('Wallet disconnected');
+      console.log('Balance:', state.balance);
     }
   });
+
+  updateLabels();
 });
