@@ -16,10 +16,10 @@ const nachoToSwodnRate = 100;
 const swodnToNachoRate = 165;
 const usdcToSwodnRate = 500;
 const swodnToUsdcRate = 0.002;
-const mmediaToSwodnRate = 5; 
-const swodnToMmediaRate = 5; 
-const ghoadToSwodnRate = 100; 
-const swodnToGhoadRate = 300; 
+const mmediaToSwodnRate = 5;
+const swodnToMmediaRate = 5;
+const ghoadToSwodnRate = 100;
+const swodnToGhoadRate = 300;
 const minSwodnForUsdc = 500;
 
 const sendInput = document.getElementById('send-amount');
@@ -40,6 +40,8 @@ const maxSnowdn = 1000;
 const minSnowdn = 10;
 const minKsdogBuy = 100000;
 
+const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 class KaswareState extends EventTarget {
   constructor() {
     super();
@@ -50,6 +52,7 @@ class KaswareState extends EventTarget {
       krc20Balances: null,
       isLoading: false,
       error: null,
+      isMobile: isMobile()
     };
     this.initialize();
   }
@@ -62,24 +65,26 @@ class KaswareState extends EventTarget {
   }
 
   initialize() {
-    if (window.kasware) {
-      window.kasware.on("accountsChanged", this.handleAccountsChanged.bind(this));
-      window.kasware.on("chainChanged", this.handleChainChanged.bind(this));
-      window.kasware.on("disconnect", this.handleDisconnect.bind(this));
+    if (window.kasware || (this.state.isMobile && window.kaspaWallet)) {
+      if (window.kasware) {
+        window.kasware.on("accountsChanged", this.handleAccountsChanged.bind(this));
+        window.kasware.on("chainChanged", this.handleChainChanged.bind(this));
+        window.kasware.on("disconnect", this.handleDisconnect.bind(this));
+      }
     } else {
-      this.setState({ error: "Kasware wallet not detected" });
+      this.setState({ error: "Kasware wallet not detected. Please install the extension or mobile app" });
     }
   }
 
   async connectWallet() {
-    if (!window.kasware) {
-      alert("Please install Kasware Wallet extension");
+    const wallet = this.state.isMobile && window.kaspaWallet ? window.kaspaWallet : window.kasware;
+    if (!wallet) {
+      alert("Please install Kasware Wallet extension or mobile app");
       return;
     }
-
     this.setState({ isLoading: true, error: null });
     try {
-      const accounts = await window.kasware.requestAccounts();
+      const accounts = await wallet.requestAccounts();
       if (accounts.length > 0) {
         this.setState({
           account: accounts[0],
@@ -88,7 +93,6 @@ class KaswareState extends EventTarget {
         });
         await this.refreshBalances();
         kaswareConnectDiv.style.display = 'none';
-        // Update button text with shortened address
         connectBtn.textContent = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
       }
     } catch (error) {
@@ -103,9 +107,10 @@ class KaswareState extends EventTarget {
   async refreshBalances() {
     if (this.state.account) {
       try {
+        const wallet = this.state.isMobile && window.kaspaWallet ? window.kaspaWallet : window.kasware;
         const [balance, krc20Balances] = await Promise.all([
-          window.kasware.getBalance(),
-          window.kasware.getKRC20Balance()
+          wallet.getBalance(),
+          wallet.getKRC20Balance()
         ]);
         this.setState({ balance, krc20Balances });
       } catch (error) {
@@ -117,7 +122,8 @@ class KaswareState extends EventTarget {
 
   async sendTransaction(toAddress, amount) {
     try {
-      const txid = await window.kasware.sendKaspa(toAddress, amount);
+      const wallet = this.state.isMobile && window.kaspaWallet ? window.kaspaWallet : window.kasware;
+      const txid = await wallet.sendKaspa(toAddress, amount);
       return txid;
     } catch (error) {
       this.setState({ error: "Transaction failed" });
@@ -168,15 +174,35 @@ class KaswareState extends EventTarget {
   }
 }
 
-sendInput.addEventListener('input', () => {
-  updateExchangeValues();
-});
+function addMultiPlatformListeners(element, callback) {
+  element.addEventListener('click', callback);
+  element.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    callback(e);
+  });
+}
 
-swodnInput.addEventListener('input', () => {
-  updateReverseExchangeValues();
-});
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
-connectBtn.addEventListener('click', async () => {
+function setupInputListeners(input) {
+  input.addEventListener('input', debounce(updateExchangeValues, 300));
+  input.addEventListener('touchstart', () => input.focus());
+}
+
+setupInputListeners(sendInput);
+setupInputListeners(swodnInput);
+
+addMultiPlatformListeners(connectBtn, async () => {
   const kaswareState = KaswareState.getInstance();
   try {
     await kaswareState.connectWallet();
@@ -191,9 +217,7 @@ function updateExchangeValues() {
 
   if (!isNaN(sendAmount)) {
     if (selectedCurrencyValue === 'KAS') {
-      calculatedAmount = isKasToSwodn
-        ? sendAmount * kasToSwodnRate
-        : sendAmount * swodnToKasRate;
+      calculatedAmount = isKasToSwodn ? sendAmount * kasToSwodnRate : sendAmount * swodnToKasRate;
     } else if (selectedCurrencyValue === 'KSDOG') {
       if (isKasToSwodn && sendAmount >= minKsdogBuy) {
         calculatedAmount = Math.floor(sendAmount / ksdogToSwodnBuyRate);
@@ -201,25 +225,15 @@ function updateExchangeValues() {
         calculatedAmount = Math.floor(sendAmount / ksdogToSwodnSellRate);
       }
     } else if (selectedCurrencyValue === 'KANGO') {
-      calculatedAmount = isKasToSwodn
-        ? sendAmount / kangoToSwodnRate
-        : sendAmount * swodnToKangoRate;
+      calculatedAmount = isKasToSwodn ? sendAmount / kangoToSwodnRate : sendAmount * swodnToKangoRate;
     } else if (selectedCurrencyValue === 'NACHO') {
-      calculatedAmount = isKasToSwodn
-        ? sendAmount / nachoToSwodnRate
-        : sendAmount * swodnToNachoRate;
+      calculatedAmount = isKasToSwodn ? sendAmount / nachoToSwodnRate : sendAmount * swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
-      calculatedAmount = isKasToSwodn
-        ? sendAmount * usdcToSwodnRate
-        : sendAmount / usdcToSwodnRate;
+      calculatedAmount = isKasToSwodn ? sendAmount * usdcToSwodnRate : sendAmount / usdcToSwodnRate;
     } else if (selectedCurrencyValue === 'MMEDIA') {
-      calculatedAmount = isKasToSwodn
-        ? sendAmount * mmediaToSwodnRate 
-        : sendAmount / swodnToMmediaRate; 
+      calculatedAmount = isKasToSwodn ? sendAmount * mmediaToSwodnRate : sendAmount / swodnToMmediaRate;
     } else if (selectedCurrencyValue === 'GHOAD') {
-      calculatedAmount = isKasToSwodn
-        ? sendAmount / ghoadToSwodnRate
-        : sendAmount * swodnToGhoadRate;
+      calculatedAmount = isKasToSwodn ? sendAmount / ghoadToSwodnRate : sendAmount * swodnToGhoadRate;
     }
 
     calculatedAmount = Math.floor(calculatedAmount);
@@ -243,7 +257,6 @@ function updateExchangeValues() {
         sendInput.value = Math.floor(maxSnowdn * ghoadToSwodnRate);
       }
     }
-
     swodnInput.value = calculatedAmount;
   } else {
     swodnInput.value = '';
@@ -256,33 +269,19 @@ function updateReverseExchangeValues() {
 
   if (!isNaN(swodnAmount)) {
     if (selectedCurrencyValue === 'KAS') {
-      calculatedAmount = isKasToSwodn
-        ? Math.floor(swodnAmount / kasToSwodnRate)
-        : Math.floor(swodnAmount / swodnToKasRate);
+      calculatedAmount = isKasToSwodn ? Math.floor(swodnAmount / kasToSwodnRate) : Math.floor(swodnAmount / swodnToKasRate);
     } else if (selectedCurrencyValue === 'KSDOG') {
-      calculatedAmount = isKasToSwodn
-        ? swodnAmount * ksdogToSwodnBuyRate
-        : swodnAmount * ksdogToSwodnSellRate;
+      calculatedAmount = isKasToSwodn ? swodnAmount * ksdogToSwodnBuyRate : swodnAmount * ksdogToSwodnSellRate;
     } else if (selectedCurrencyValue === 'KANGO') {
-      calculatedAmount = isKasToSwodn
-        ? swodnAmount * kangoToSwodnRate
-        : swodnAmount / swodnToKangoRate;
+      calculatedAmount = isKasToSwodn ? swodnAmount * kangoToSwodnRate : swodnAmount / swodnToKangoRate;
     } else if (selectedCurrencyValue === 'NACHO') {
-      calculatedAmount = isKasToSwodn
-        ? swodnAmount * nachoToSwodnRate
-        : swodnAmount / swodnToNachoRate;
+      calculatedAmount = isKasToSwodn ? swodnAmount * nachoToSwodnRate : swodnAmount / swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
-      calculatedAmount = isKasToSwodn
-        ? swodnAmount / usdcToSwodnRate
-        : swodnAmount * swodnToUsdcRate;
+      calculatedAmount = isKasToSwodn ? swodnAmount / usdcToSwodnRate : swodnAmount * swodnToUsdcRate;
     } else if (selectedCurrencyValue === 'MMEDIA') {
-      calculatedAmount = isKasToSwodn
-        ? swodnAmount / mmediaToSwodnRate 
-        : swodnAmount * swodnToMmediaRate; 
+      calculatedAmount = isKasToSwodn ? swodnAmount / mmediaToSwodnRate : swodnAmount * swodnToMmediaRate;
     } else if (selectedCurrencyValue === 'GHOAD') {
-      calculatedAmount = isKasToSwodn
-        ? swodnAmount * ghoadToSwodnRate 
-        : swodnAmount * swodnToGhoadRate; 
+      calculatedAmount = isKasToSwodn ? swodnAmount * ghoadToSwodnRate : swodnAmount * swodnToGhoadRate;
     }
 
     const swodnAmountRounded = Math.floor(swodnAmount);
@@ -292,70 +291,62 @@ function updateReverseExchangeValues() {
     } else if (swodnAmountRounded > maxSnowdn) {
       swodnInput.value = maxSnowdn;
       if (selectedCurrencyValue === 'KAS') {
-        calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn / kasToSwodnRate)
-          : Math.floor(maxSnowdn / swodnToKasRate);
+        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn / kasToSwodnRate) : Math.floor(maxSnowdn / swodnToKasRate);
       } else if (selectedCurrencyValue === 'KSDOG') {
-        calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn * ksdogToSwodnBuyRate)
-          : Math.floor(maxSnowdn * ksdogToSwodnSellRate);
+        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn * ksdogToSwodnBuyRate) : Math.floor(maxSnowdn * ksdogToSwodnSellRate);
       } else if (selectedCurrencyValue === 'KANGO') {
-        calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn * kangoToSwodnRate)
-          : Math.floor(maxSnowdn / swodnToKangoRate);
+        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn * kangoToSwodnRate) : Math.floor(maxSnowdn / swodnToKangoRate);
       } else if (selectedCurrencyValue === 'NACHO') {
-        calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn * nachoToSwodnRate)
-          : Math.floor(maxSnowdn / swodnToNachoRate);
+        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn * nachoToSwodnRate) : Math.floor(maxSnowdn / swodnToNachoRate);
       } else if (selectedCurrencyValue === 'USDC') {
-        calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn / usdcToSwodnRate)
-          : Math.floor(maxSnowdn * swodnToUsdcRate);
+        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn / usdcToSwodnRate) : Math.floor(maxSnowdn * swodnToUsdcRate);
       } else if (selectedCurrencyValue === 'MMEDIA') {
-        calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn / mmediaToSwodnRate)
-          : Math.floor(maxSnowdn * swodnToMmediaRate);
+        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn / mmediaToSwodnRate) : Math.floor(maxSnowdn * swodnToMmediaRate);
       } else if (selectedCurrencyValue === 'GHOAD') {
-        calculatedAmount = isKasToSwodn
-          ? Math.floor(maxSnowdn * ghoadToSwodnRate)
-          : Math.floor(maxSnowdn * swodnToGhoadRate);
+        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn * ghoadToSwodnRate) : Math.floor(maxSnowdn * swodnToGhoadRate);
       }
     }
-
     sendInput.value = calculatedAmount.toFixed(2);
   } else {
     sendInput.value = '';
   }
 }
 
-toggleBtn.addEventListener('click', () => {
+addMultiPlatformListeners(toggleBtn, () => {
   isKasToSwodn = !isKasToSwodn;
   updateLabels();
   resetInputs();
 });
 
-selectedCurrency.addEventListener("click", () => {
+addMultiPlatformListeners(selectedCurrency, () => {
   currencyList.style.display = currencyList.style.display === "block" ? "none" : "block";
+  if (isMobile()) {
+    currencyList.style.maxHeight = `${window.innerHeight * 0.5}px`;
+    currencyList.style.overflowY = 'auto';
+  }
 });
 
-currencyList.addEventListener("click", (e) => {
-  if (e.target.tagName === "LI" || e.target.closest("LI")) {
-    let selectedItem = e.target.closest("LI");
-    selectedCurrencyValue = selectedItem.dataset.value;
-    let currencyIcon = selectedItem.dataset.icon;
-
+addMultiPlatformListeners(currencyList, (e) => {
+  const target = e.target.tagName === "LI" ? e.target : e.target.closest("LI");
+  if (target) {
+    selectedCurrencyValue = target.dataset.value;
+    let currencyIcon = target.dataset.icon;
     selectedCurrency.innerHTML = `
       <img src="${currencyIcon}" alt="${selectedCurrencyValue} Logo" class="currency-logo" />
       <span>${selectedCurrencyValue}</span>
     `;
-
     currencyList.style.display = "none";
     updateLabels();
     resetInputs();
   }
 });
 
-document.addEventListener("click", (e) => {
+document.addEventListener('touchend', (e) => {
+  if (!selectedCurrency.contains(e.target) && !currencyList.contains(e.target)) {
+    currencyList.style.display = "none";
+  }
+});
+document.addEventListener('click', (e) => {
   if (!selectedCurrency.contains(e.target) && !currencyList.contains(e.target)) {
     currencyList.style.display = "none";
   }
@@ -415,17 +406,13 @@ async function logTransactionToSupabase(action, currency, amount, txid = null) {
     created_at: new Date().toISOString()
   };
 
-  // For manual transactions, store in localStorage
   if (!txid) {
     console.log('Logging manual transaction:', transactionData);
     localStorage.setItem('pendingTransaction', JSON.stringify(transactionData));
-  } 
-  // For automatic transactions, store directly in Supabase
-  else {
+  } else {
     const { error } = await window.supabaseClient
       .from('transactions')
       .insert([transactionData]);
-    
     if (error) {
       console.error('Supabase insert error:', error);
       throw error;
@@ -451,17 +438,20 @@ async function handleTransaction(action) {
     return;
   }
 
-  const paymentMethod = confirm("Would you like to pay automatically?\nPress OK for automatic payment or Cancel for manual payment");
+  const paymentMethod = await new Promise(resolve => {
+    const message = "Would you like to pay automatically?\nOK = Automatic\nCancel = Manual";
+    resolve(confirm(message));
+  });
+
   const treasuryAddress = "kaspa:qyp60g7z60kk77vrjm2muz5knlex9uxlp88r2sznwsl30mxzrxwp2cglt7f5czn";
 
-  if (paymentMethod) { 
+  if (paymentMethod) {
     try {
       let txid;
       if (action === 'Buy' && isKasToSwodn && selectedCurrencyValue === 'KAS') {
         const amountInSompi = Math.floor(sendAmount * 100000000);
         txid = await kaswareState.sendTransaction(treasuryAddress, amountInSompi);
       }
-      
       if (txid) {
         await logTransactionToSupabase(action, selectedCurrencyValue, convertedAmount, txid);
         return txid;
@@ -470,13 +460,14 @@ async function handleTransaction(action) {
       console.error(`${action} failed:`, error);
       throw error;
     }
-  } else { // Manual payment
+  } else {
     await logTransactionToSupabase(action, selectedCurrencyValue, convertedAmount);
     return null;
   }
 }
 
-buyBtn.addEventListener('click', async () => {
+addMultiPlatformListeners(buyBtn, async (e) => {
+  e.preventDefault();
   try {
     const txid = await handleTransaction('Buy');
     if (txid) {
@@ -488,7 +479,8 @@ buyBtn.addEventListener('click', async () => {
   }
 });
 
-sellBtn.addEventListener('click', async () => {
+addMultiPlatformListeners(sellBtn, async (e) => {
+  e.preventDefault();
   try {
     const txid = await handleTransaction('Sell');
     if (txid) {
@@ -500,11 +492,22 @@ sellBtn.addEventListener('click', async () => {
   }
 });
 
+window.addEventListener('resize', () => {
+  if (currencyList.style.display === 'block' && isMobile()) {
+    currencyList.style.maxHeight = `${window.innerHeight * 0.5}px`;
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   const kaswareState = KaswareState.getInstance();
   
-  if (!window.kasware || !kaswareState.getState().isConnected) {
+  if ((!window.kasware && !window.kaspaWallet) || !kaswareState.getState().isConnected) {
     kaswareConnectDiv.style.display = 'block';
+  }
+
+  if (isMobile()) {
+    sendInput.style.fontSize = '16px';
+    swodnInput.style.fontSize = '16px';
   }
 
   kaswareState.addEventListener("stateChanged", (event) => {
