@@ -139,7 +139,9 @@ class KaswareState extends EventTarget {
         balance: null,
         krc20Balances: null,
       });
-      connectBtn.textContent = "Connect Kasware Wallet";
+      const isMobile = window.innerWidth <= 768;
+
+      connectBtn.textContent = isMobile ? "Connect Kasware" : "Connect Kasware Wallet";
       kaswareConnectDiv.style.display = 'block';
     } else {
       this.setState({ account: accounts[0], isConnected: true });
