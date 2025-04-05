@@ -1,9 +1,27 @@
+let deferredPrompt;
 document.addEventListener('DOMContentLoaded', () => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker registered with scope:', registration.scope);
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  }
   const supabase = window.supabase.createClient(
     'https://idtajnzyikcrqqyeephb.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdGFqbnp5aWtjcnFxeWVlcGhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwNzExODEsImV4cCI6MjA1NjY0NzE4MX0.dmdooctqxdRcA3DkKXHo8T2jE69AFUpccrgpm7V73lI'
   );
   window.supabaseClient = supabase;
+});
+function isStandalone() {
+  return (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  console.log('beforeinstallprompt event fired!');
 });
 
 const kasToSwodnRate = 10;
@@ -65,7 +83,7 @@ class KaswareState extends EventTarget {
   }
 
   initialize() {
-    if (window.kasware || (this.state.isMobile && window.kaspaWallet)) {
+    if (window.kasware || (this.state.isMobile &&  window.kaspaWallet)) {
       if (window.kasware) {
         window.kasware.on("accountsChanged", this.handleAccountsChanged.bind(this));
         window.kasware.on("chainChanged", this.handleChainChanged.bind(this));
@@ -189,7 +207,7 @@ function debounce(func, wait) {
   return function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout);
-      func(...args);
+      func(...argsA);
     };
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
@@ -231,7 +249,7 @@ function updateExchangeValues() {
     } else if (selectedCurrencyValue === 'NACHO') {
       calculatedAmount = isKasToSwodn ? sendAmount / nachoToSwodnRate : sendAmount * swodnToNachoRate;
     } else if (selectedCurrencyValue === 'USDC') {
-      calculatedAmount = isKasToSwodn ? sendAmount * usdcToSwodnRate : sendAmount / usdcToSwodnRate;
+      calculatedAmount = isKasToSwodn ? sendAmount * usdcToSwodnRate : sendAmount / swodnToUsdcRate;
     } else if (selectedCurrencyValue === 'MMEDIA') {
       calculatedAmount = isKasToSwodn ? sendAmount * mmediaToSwodnRate : sendAmount / swodnToMmediaRate;
     } else if (selectedCurrencyValue === 'GHOAD') {
@@ -500,6 +518,162 @@ window.addEventListener('resize', () => {
   }
 });
 
+function showAddToHomeScreenPrompt() {
+  const siteName = "SNOWDN SWAP"; // Match your manifest name
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+  if (!isStandalone()) {
+    // Create the prompt container
+    const promptDiv = document.createElement('div');
+    promptDiv.id = 'add-to-home-prompt';
+    promptDiv.style.cssText = `
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #1e1e2f 0%, #2a2a4a 100%);
+      color: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 90%;
+      width: 340px;
+      text-align: center;
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+    `;
+
+    // Define the keyframes for fade-in animation
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
+    // Content based on platform
+    if (isAndroid) {
+      promptDiv.innerHTML = `
+        <div style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">
+          Add ${siteName} to Your Home Screen
+        </div>
+        <div style="font-size: 14px; color: #d1d1d6; margin-bottom: 20px;">
+          Access your DeFi tools faster with one tap!
+        </div>
+        <div style="display: flex; justify-content: center; gap: 15px;">
+          <button id="install-btn" style="
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #00d4ff, #007bff);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+          ">Add Now</button>
+          <button id="dismiss-btn" style="
+            padding: 10px 20px;
+            background: #ff4d4d;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+          ">Not Now</button>
+        </div>
+      `;
+    } else if (isIOS) {
+      promptDiv.innerHTML = `
+        <div style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">
+          Add ${siteName} to Your Home Screen
+        </div>
+        <div style="font-size: 14px; color: #d1d1d6; margin-bottom: 20px;">
+          ${isSafari ? 
+            'Tap <strong style="color: #00d4ff;">Share</strong> below, scroll down, select <strong style="color: #00d4ff;">Add to Home Screen</strong>, then tap <strong style="color: #00d4ff;">Add</strong>.' : 
+            'Open in Safari, then tap <strong style="color: #00d4ff;">Share</strong>, scroll down, select <strong style="color: #00d4ff;">Add to Home Screen</strong>, and tap <strong style="color: #00d4ff;">Add</strong>.'}
+        </div>
+        <button id="dismiss-btn" style="
+          padding: 10px 20px;
+          background: #ff4d4d;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: transform 0.2s, box-shadow 0.2s;
+        ">Dismiss</button>
+      `;
+    }
+
+    // Append the prompt to the body
+    document.body.appendChild(promptDiv);
+
+    // Add hover and click effects to buttons
+    const buttons = promptDiv.querySelectorAll('button');
+    buttons.forEach(button => {
+      button.addEventListener('mouseover', () => {
+        button.style.transform = 'scale(1.05)';
+        button.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.3)';
+      });
+      button.addEventListener('mouseout', () => {
+        button.style.transform = 'scale(1)';
+        button.style.boxShadow = 'none';
+      });
+    });
+
+    // Button event listeners
+    if (isAndroid) {
+      const installBtn = document.getElementById('install-btn');
+      const dismissBtn = document.getElementById('dismiss-btn');
+
+      addMultiPlatformListeners(installBtn, async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(outcome === 'accepted' ? 'User accepted the A2HS prompt' : 'User dismissed the A2HS prompt');
+          deferredPrompt = null;
+          promptDiv.remove();
+        } else {
+          alert(`Please use a supported browser like Chrome to add ${siteName} to your home screen automatically.`);
+        }
+      });
+
+      addMultiPlatformListeners(dismissBtn, () => {
+        promptDiv.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => promptDiv.remove(), 300);
+      });
+    } else if (isIOS) {
+      const dismissBtn = document.getElementById('dismiss-btn');
+      addMultiPlatformListeners(dismissBtn, () => {
+        promptDiv.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => promptDiv.remove(), 300);
+      });
+    }
+
+    // Add fade-out animation for dismissal
+    styleSheet.textContent += `
+      @keyframes fadeOut {
+        from { opacity: 1; transform: translateX(-50%) translateY(0); }
+        to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      }
+    `;
+  }
+}
 document.addEventListener('DOMContentLoaded', () => {
   const kaswareState = KaswareState.getInstance();
   
@@ -522,4 +696,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   updateLabels();
+  
+  setTimeout(showAddToHomeScreenPrompt, 3000); 
 });
