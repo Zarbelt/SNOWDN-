@@ -1,4 +1,5 @@
 let deferredPrompt;
+
 document.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
@@ -9,15 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Service Worker registration failed:', error);
       });
   }
+
   const supabase = window.supabase.createClient(
     'https://idtajnzyikcrqqyeephb.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdGFqbnp5aWtjcnFxeWVlcGhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwNzExODEsImV4cCI6MjA1NjY0NzE4MX0.dmdooctqxdRcA3DkKXHo8T2jE69AFUpccrgpm7V73lI'
   );
   window.supabaseClient = supabase;
 });
+
 function isStandalone() {
   return (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
 }
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -47,10 +51,16 @@ const sellBtn = document.getElementById('sell-btn');
 const toggleBtn = document.getElementById('toggle-btn');
 const sendLabel = document.getElementById('send-label');
 const getLabel = document.getElementById('get-label');
-const selectedCurrency = document.getElementById("selected-currency");
-const currencyList = document.getElementById("currency-list");
+const selectedCurrency = document.getElementById('selected-currency');
+const currencyList = document.getElementById('currency-list');
 const connectBtn = document.getElementById('connect-kasware-btn');
 const kaswareConnectDiv = document.getElementById('kasware-connect');
+
+if (!sendInput || !swodnInput || !buyBtn || !sellBtn || !toggleBtn || !sendLabel || !getLabel || !selectedCurrency || !currencyList || !connectBtn || !kaswareConnectDiv) {
+  console.error('Required elements not found:', {
+    sendInput, swodnInput, buyBtn, sellBtn, toggleBtn, sendLabel, getLabel, selectedCurrency, currencyList, connectBtn, kaswareConnectDiv
+  });
+}
 
 let isKasToSwodn = true;
 let selectedCurrencyValue = 'KAS';
@@ -83,7 +93,7 @@ class KaswareState extends EventTarget {
   }
 
   initialize() {
-    if (window.kasware || (this.state.isMobile &&  window.kaspaWallet)) {
+    if (window.kasware || (this.state.isMobile && window.kaspaWallet)) {
       if (window.kasware) {
         window.kasware.on("accountsChanged", this.handleAccountsChanged.bind(this));
         window.kasware.on("chainChanged", this.handleChainChanged.bind(this));
@@ -158,7 +168,6 @@ class KaswareState extends EventTarget {
         krc20Balances: null,
       });
       const isMobile = window.innerWidth <= 768;
-
       connectBtn.textContent = isMobile ? "Connect Kasware" : "Connect Kasware Wallet";
       kaswareConnectDiv.style.display = 'block';
     } else {
@@ -207,7 +216,7 @@ function debounce(func, wait) {
   return function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout);
-      func(...argsA);
+      func(...args);
     };
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
@@ -215,12 +224,18 @@ function debounce(func, wait) {
 }
 
 function setupInputListeners(input) {
-  input.addEventListener('input', debounce(updateExchangeValues, 300));
+  if (input === sendInput) {
+    input.addEventListener('input', debounce(updateExchangeValues, 300));
+  } else if (input === swodnInput) {
+    input.addEventListener('input', debounce(updateReverseExchangeValues, 300));
+  }
   input.addEventListener('touchstart', () => input.focus());
 }
 
-setupInputListeners(sendInput);
-setupInputListeners(swodnInput);
+if (sendInput && swodnInput) {
+  setupInputListeners(sendInput);
+  setupInputListeners(swodnInput);
+}
 
 addMultiPlatformListeners(connectBtn, async () => {
   const kaswareState = KaswareState.getInstance();
@@ -232,12 +247,18 @@ addMultiPlatformListeners(connectBtn, async () => {
 });
 
 function updateExchangeValues() {
+  console.log('updateExchangeValues called', {
+    sendInput: sendInput.value,
+    selectedCurrencyValue,
+    isKasToSwodn,
+  });
   const sendAmount = parseFloat(sendInput.value);
   let calculatedAmount = 0;
 
   if (!isNaN(sendAmount)) {
     if (selectedCurrencyValue === 'KAS') {
       calculatedAmount = isKasToSwodn ? sendAmount * kasToSwodnRate : sendAmount * swodnToKasRate;
+      console.log('KAS calculation', { sendAmount, calculatedAmount });
     } else if (selectedCurrencyValue === 'KSDOG') {
       if (isKasToSwodn && sendAmount >= minKsdogBuy) {
         calculatedAmount = Math.floor(sendAmount / ksdogToSwodnBuyRate);
@@ -284,14 +305,24 @@ function updateExchangeValues() {
 }
 
 function updateReverseExchangeValues() {
+  console.log('updateReverseExchangeValues called', {
+    swodnInput: swodnInput.value,
+    selectedCurrencyValue,
+    isKasToSwodn,
+  });
   const swodnAmount = parseFloat(swodnInput.value);
   let calculatedAmount = 0;
 
   if (!isNaN(swodnAmount)) {
     if (selectedCurrencyValue === 'KAS') {
-      calculatedAmount = isKasToSwodn ? Math.floor(swodnAmount / kasToSwodnRate) : Math.floor(swodnAmount / swodnToKasRate);
+      calculatedAmount = isKasToSwodn
+        ? Math.floor(swodnAmount / kasToSwodnRate)
+        : Math.floor(swodnAmount / swodnToKasRate);
+      console.log('KAS reverse calculation', { swodnAmount, calculatedAmount });
     } else if (selectedCurrencyValue === 'KSDOG') {
-      calculatedAmount = isKasToSwodn ? swodnAmount * ksdogToSwodnBuyRate : swodnAmount * ksdogToSwodnSellRate;
+      calculatedAmount = isKasToSwodn
+        ? swodnAmount * ksdogToSwodnBuyRate
+        : swodnAmount * ksdogToSwodnSellRate;
     } else if (selectedCurrencyValue === 'KANGO') {
       calculatedAmount = isKasToSwodn ? swodnAmount * kangoToSwodnRate : swodnAmount / swodnToKangoRate;
     } else if (selectedCurrencyValue === 'NACHO') {
@@ -301,7 +332,7 @@ function updateReverseExchangeValues() {
     } else if (selectedCurrencyValue === 'MMEDIA') {
       calculatedAmount = isKasToSwodn ? swodnAmount / mmediaToSwodnRate : swodnAmount * swodnToMmediaRate;
     } else if (selectedCurrencyValue === 'GHOAD') {
-      calculatedAmount = isKasToSwodn ? swodnAmount * ghoadToSwodnRate : swodnAmount * swodnToGhoadRate;
+      calculatedAmount = isKasToSwodn ? swodnAmount * ghoadToSwodnRate : swodnAmount / swodnToGhoadRate;
     }
 
     const swodnAmountRounded = Math.floor(swodnAmount);
@@ -311,9 +342,13 @@ function updateReverseExchangeValues() {
     } else if (swodnAmountRounded > maxSnowdn) {
       swodnInput.value = maxSnowdn;
       if (selectedCurrencyValue === 'KAS') {
-        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn / kasToSwodnRate) : Math.floor(maxSnowdn / swodnToKasRate);
+        calculatedAmount = isKasToSwodn
+          ? Math.floor(maxSnowdn / kasToSwodnRate)
+          : Math.floor(maxSnowdn / swodnToKasRate);
       } else if (selectedCurrencyValue === 'KSDOG') {
-        calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn * ksdogToSwodnBuyRate) : Math.floor(maxSnowdn * ksdogToSwodnSellRate);
+        calculatedAmount = isKasToSwodn
+          ? Math.floor(maxSnowdn * ksdogToSwodnBuyRate)
+          : Math.floor(maxSnowdn * ksdogToSwodnSellRate);
       } else if (selectedCurrencyValue === 'KANGO') {
         calculatedAmount = isKasToSwodn ? Math.floor(maxSnowdn * kangoToSwodnRate) : Math.floor(maxSnowdn / swodnToKangoRate);
       } else if (selectedCurrencyValue === 'NACHO') {
@@ -366,6 +401,7 @@ document.addEventListener('touchend', (e) => {
     currencyList.style.display = "none";
   }
 });
+
 document.addEventListener('click', (e) => {
   if (!selectedCurrency.contains(e.target) && !currencyList.contains(e.target)) {
     currencyList.style.display = "none";
@@ -373,6 +409,7 @@ document.addEventListener('click', (e) => {
 });
 
 function updateLabels() {
+  console.log('updateLabels', { selectedCurrencyValue, isKasToSwodn });
   sendLabel.textContent = isKasToSwodn ? `You Send (${selectedCurrencyValue}):` : `You Send (SNOWDN):`;
   getLabel.textContent = isKasToSwodn ? `You Get (SNOWDN):` : `You Get (${selectedCurrencyValue}):`;
 }
@@ -425,6 +462,12 @@ async function logTransactionToSupabase(action, currency, amount, txid = null) {
     transaction_id: txid,
     created_at: new Date().toISOString()
   };
+
+  if (!window.supabaseClient) {
+    console.warn('Supabase client not available, logging to console only');
+    console.log('Transaction:', transactionData);
+    return;
+  }
 
   if (!txid) {
     console.log('Logging manual transaction:', transactionData);
@@ -519,13 +562,12 @@ window.addEventListener('resize', () => {
 });
 
 function showAddToHomeScreenPrompt() {
-  const siteName = "SNOWDN SWAP"; // Match your manifest name
+  const siteName = "SNOWDN SWAP";
   const isAndroid = /Android/i.test(navigator.userAgent);
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
   if (!isStandalone()) {
-    // Create the prompt container
     const promptDiv = document.createElement('div');
     promptDiv.id = 'add-to-home-prompt';
     promptDiv.style.cssText = `
@@ -547,7 +589,6 @@ function showAddToHomeScreenPrompt() {
       animation: fadeIn 0.5s ease forwards;
     `;
 
-    // Define the keyframes for fade-in animation
     const styleSheet = document.createElement('style');
     styleSheet.textContent = `
       @keyframes fadeIn {
@@ -562,7 +603,6 @@ function showAddToHomeScreenPrompt() {
     `;
     document.head.appendChild(styleSheet);
 
-    // Content based on platform
     if (isAndroid) {
       promptDiv.innerHTML = `
         <div style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">
@@ -620,10 +660,8 @@ function showAddToHomeScreenPrompt() {
       `;
     }
 
-    // Append the prompt to the body
     document.body.appendChild(promptDiv);
 
-    // Add hover and click effects to buttons
     const buttons = promptDiv.querySelectorAll('button');
     buttons.forEach(button => {
       button.addEventListener('mouseover', () => {
@@ -636,7 +674,6 @@ function showAddToHomeScreenPrompt() {
       });
     });
 
-    // Button event listeners
     if (isAndroid) {
       const installBtn = document.getElementById('install-btn');
       const dismissBtn = document.getElementById('dismiss-btn');
@@ -665,7 +702,6 @@ function showAddToHomeScreenPrompt() {
       });
     }
 
-    // Add fade-out animation for dismissal
     styleSheet.textContent += `
       @keyframes fadeOut {
         from { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -674,6 +710,7 @@ function showAddToHomeScreenPrompt() {
     `;
   }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   const kaswareState = KaswareState.getInstance();
   
